@@ -1,0 +1,10 @@
+.idea
+*.iml
+.DS_Store
+_sf/vendors
+_sf_overrides
+composer.lock
+
+### demo files
+docs
+portraits

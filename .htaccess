@@ -1,0 +1,7 @@
+RewriteEngine On
+DirectorySlash Off
+RewriteOptions AllowNoSlash
+RedirectMatch 403 /_sf/?$
+RedirectMatch 403 /_sf_shares/?$
+RewriteCond %{REQUEST_URI} !/_sf [NC]
+RewriteRule ^(.*)$ _sf/index.php?__page__=/$1 [L,QSA]

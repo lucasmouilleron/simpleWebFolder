@@ -1,0 +1,9 @@
+{
+    "name": "simpleFolder",
+    "require": {
+        "erusev/parsedown": "^1.7"
+    },
+    "config": {
+        "vendor-dir": "vendors"
+    }
+}
