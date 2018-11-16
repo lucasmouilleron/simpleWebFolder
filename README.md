@@ -8,10 +8,11 @@ For Apache web servers.
 ## Features
 - List files and folders
 - Nice layout
-- Password protection : 
+- Password protection: 
     - drop a `password` file containing the deisred password in folders (and subfolders) you want to protect
     - drop a `nopassword` file in folders (and subfolders) you want to deprotect (in case of protected parent)
 - Download folder as a zip
+- Shares: expiration, path obfuscation, tracking
 - `README.md` files in folders are interpreted and displayed on top  
 
 
