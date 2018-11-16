@@ -6,6 +6,7 @@ require_once __DIR__ . "/vendors/autoload.php";
 ///////////////////////////////////////////////////////////////////////////////
 date_default_timezone_set($TIMEZONE);
 
+
 ///////////////////////////////////////////////////////////////////////////////
 function zipFileAndDownload($rootPath, $path, $forbiddenItems, $sizeLimitInMB, $tmpFolder)
 {
@@ -303,10 +304,7 @@ function inArrayString($needle, $haystack)
 {
     foreach($haystack as $h)
     {
-        if($needle == $h)
-        {
-            return true;
-        }
+        if($needle == $h) return true;
     }
     return false;
 }
@@ -315,14 +313,8 @@ function inArrayString($needle, $haystack)
 function getFileExtensionClass($filePath, $map)
 {
     $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-    if(array_key_exists($ext, $map))
-    {
-        return $map[$ext];
-    }
-    if(array_key_exists("default", $map))
-    {
-        return $map["default"];
-    }
+    if(array_key_exists($ext, $map)) return $map[$ext];
+    if(array_key_exists("default", $map)) return $map["default"];
     return "default";
 }
 
@@ -360,10 +352,7 @@ function getReadme($folderPath, $offsetHeaders)
     {
         $p = new Parsedown();
         $readmeContent = $p->text(fread(fopen($file, "r"), filesize($file)));
-        if($offsetHeaders)
-        {
-            $readmeContent = offsetHeaders($readmeContent);
-        }
+        if($offsetHeaders) $readmeContent = offsetHeaders($readmeContent);
     }
     return $readmeContent;
 }
@@ -391,24 +380,12 @@ function scanFolder($folderPath, $forbiddenItems)
         $itemPath = preg_replace('/(\/+)/', '/', $folderPath . "/" . $item);
         if(filesize($itemPath) == 0)
         {
-//            continue;
+            // continue;
         }
-        if(inArrayString($item, $forbiddenItems))
-        {
-            continue;
-        }
-        if(showForbidden($itemPath))
-        {
-            continue;
-        }
-        if(is_dir($itemPath))
-        {
-            $foldersMap[$item] = $itemPath;
-        }
-        else
-        {
-            $filesMap[$item] = $itemPath;
-        }
+        if(inArrayString($item, $forbiddenItems)) continue;
+        if(showForbidden($itemPath)) continue;
+        if(is_dir($itemPath)) $foldersMap[$item] = $itemPath;
+        else $filesMap[$item] = $itemPath;
     }
     return array("files" => $filesMap, "folders" => $foldersMap);
 }
@@ -417,6 +394,72 @@ function scanFolder($folderPath, $forbiddenItems)
 function offsetHeaders($content)
 {
     return str_replace("<h2", "<h3", str_replace("<h3", "<h4", str_replace("<h4", "<h5", str_replace("<h5", "<h6", preg_replace('@<h1[^>]*?>.*?<\/h1>@si', '', $content)))));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+function startsWith($haystack, $needle)
+{
+    $length = strlen($needle);
+    return (substr($haystack, 0, $length) === $needle);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+function getShare($sharesFolder, $shareID)
+{
+    $sharePath = $sharesFolder . "/" . $shareID;
+    if(!file_exists($sharePath))
+    {
+        return null;
+    }
+    $data = null;
+    $file = fopen($sharePath, "r");
+    try
+    {
+        flock($file, LOCK_SH);
+        $data = json_decode(fread($file, filesize($sharePath)));
+    }
+    finally
+    {
+        fclose($file);
+        return $data;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+function saveShare($sharesFolder, $shareID, $share)
+{
+    $sharePath = $sharesFolder . "/" . $shareID;
+    $file = fopen($sharePath, "w+");
+    try
+    {
+        flock($file, LOCK_EX);
+        fwrite($file, json_encode($share));
+    }
+    finally
+    {
+        fclose($file);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+function getShareAndDownload($rootPath, $sharesFolder, $shareID)
+{
+    try
+    {
+        $sharesPath = $rootPath . "/" . $sharesFolder;
+        $share = getShare($sharesPath, $shareID);
+        if($share == null) return false;
+        $file = $rootPath . "/" . $share->file;
+        if(!file_exists($file)) return false;
+        $share->views += 1;
+        saveShare($sharesPath, $shareID, $share);
+        displayFile($file);
+        return true;
+    }
+    catch(Exception $e)
+    {
+        return false;
+    }
 }
 
 ?>

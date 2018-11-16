@@ -1,15 +1,8 @@
 <?php
 
-
 /////////////////////////////////////////////////////////////////////////////
-if(file_exists(__DIR__ . "/config.php"))
-{
-    require __DIR__ . "/config.php";
-}
-if(file_exists(__DIR__ . "/../_sf_overrides/config.php"))
-{
-    require __DIR__ . "/../_sf_overrides/config.php";
-}
+require __DIR__ . "/config.php";
+if(file_exists(__DIR__ . "/../_sf_overrides/config.php")) require __DIR__ . "/../_sf_overrides/config.php";
 require_once __DIR__ . "/tools.php";
 
 /////////////////////////////////////////////////////////////////////////////
@@ -22,67 +15,55 @@ $currentURL = getCurrentURL();
 $currentURLWithoutURI = getCurrentURLWithoutURI();
 $alerts = [];
 $wantAdmin = false;
+$shareID = null;
+
+/////////////////////////////////////////////////////////////////////////////
+/// SHARES
+/////////////////////////////////////////////////////////////////////////////
+if(startsWith($currentPage, "/sid"))
+{
+    $shareID = str_replace("/sid=", "", $currentPage);
+    $success = getShareAndDownload($rootFolder, "_sf_shares", $shareID);
+    if(!$success) array_push($alerts, ["Can't get file", "The file you have requested does not exist."]);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+/// DOWNLOADS
 /////////////////////////////////////////////////////////////////////////////
 if(isset($_GET["download"]))
 {
     list($success, $hint) = zipFileAndDownload($rootFolder, $currentPath, $FORBIDEN_ITEMS, $MAX_ZIP_SIZE_IN_MB, $TMP_FOLDER);
-    if(!$success)
-    {
-        array_push($alerts, ["Can't zip folder", "Can't zip folder " . $currentPage . "<br/>Hint : " . $hint]);
-    }
+    if(!$success) array_push($alerts, ["Can't zip folder", "Can't zip folder " . $currentPage . "<br/>Hint : " . $hint]);
 }
-if(isset($_POST["password-submit"]))
-{
-    setPassword($rootFolder, $currentPath, $_POST["password"]);
-}
-if(isset($_POST["admin-password-submit"]))
-{
-    setAdminPassword($_POST["password"]);
 
-}
+/////////////////////////////////////////////////////////////////////////////
+/// ADMIN
+/////////////////////////////////////////////////////////////////////////////
+if(isset($_POST["admin-password-submit"])) setAdminPassword($_POST["password"]);
 $isAdmin = getAdminPassword() == $ADMIN_PASSWORD;
-if(isset($_POST["admin-password-submit"]) && !$isAdmin) {
-    array_push($alerts, ["Can't authenticate as admin", "Can't authenticate as admin. The password you provided is incorrect."]);
-}
-if(!array_key_exists("__page__", $_GET))
-{
-    header("Location: " . $baseURL);
-}
-if(isset($_GET["admin"]) && !$isAdmin)
-{
-    $wantAdmin = true;
-}
+if(isset($_POST["admin-password-submit"]) && !$isAdmin) array_push($alerts, ["Can't authenticate as admin", "Can't authenticate as admin. The password you provided is incorrect."]);
+if(isset($_GET["admin"]) && !$isAdmin) $wantAdmin = true;
 
+/////////////////////////////////////////////////////////////////////////////
+if(!array_key_exists("__page__", $_GET)) header("Location: " . $baseURL);
+if(isset($_POST["password-submit"])) setPassword($rootFolder, $currentPath, $_POST["password"]);
 list($isProtected, $requiredPassword, $isAuthorized) = isAuthorized($rootFolder, $currentPath);
-if($isAdmin)
-{
-    $isAuthorized = true;
-}
+if($isAdmin) $isAuthorized = true;
 $listingAllowed = !listingForbidden($currentPath) || $isAdmin;
-if(!$listingAllowed)
-{
-    array_push($alerts, ["Can't list folder", "You are not allowed to list this folder contents."]);
-}
+if(!$listingAllowed) array_push($alerts, ["Can't list folder", "You are not allowed to list this folder contents."]);
 $downloadAllowed = !downloadForbidden($currentPath);
 if($isAuthorized)
 {
     $requiredPasswordDisplay = $requiredPassword;
-    if(!file_exists($currentPath))
+    if(!file_exists($currentPath) && !isset($shareID)) header("Location: " . $baseURL);
+    if(file_exists($currentPath))
     {
-        header("Location: " . $baseURL);
+        if(is_file($currentPath)) displayFile($currentPath);
+        $items = scanFolder($currentPath, $FORBIDEN_ITEMS);
+        $readmeContent = getReadme($currentPath, true);
     }
-    if(is_file($currentPath))
-    {
-        displayFile($currentPath);
-    }
-
-    $items = scanFolder($currentPath, $FORBIDEN_ITEMS);
-    $readmeContent = getReadme($currentPath, true);
 }
-else
-{
-    $requiredPasswordDisplay = "- - - - - ";
-}
+else $requiredPasswordDisplay = "- - - - - ";
 
 ?>
 
@@ -104,7 +85,9 @@ else
 <body>
 
 <div class="header">
-    <a href="<?php echo $baseURL; ?>"><div class="logo"></div></a>
+    <a href="<?php echo $baseURL; ?>">
+        <div class="logo"></div>
+    </a>
 </div>
 
 <div class="name"><a href="<?php echo $baseURL; ?>"><?php echo $NAME; ?></a></div>
@@ -136,7 +119,7 @@ else
     </div>
 <?php endif; ?>
 
-<?php if(!$isAuthorized): ?>
+<?php if(!$isAuthorized && !$wantAdmin): ?>
     <div class="authenticate section">
         <div class="section-title">Protected area, please authenticate</div>
         <form method="post">
@@ -144,7 +127,7 @@ else
             <input type="submit" name="password-submit" value="login"/>
         </form>
     </div>
-<?php else: ?>
+<?php elseif(isset($items)): ?>
 
     <?php if($readmeContent != ""): ?>
         <div class="readme section">
