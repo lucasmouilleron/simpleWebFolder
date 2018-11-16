@@ -186,7 +186,8 @@ $shownAllowed = $shownAllowed || $isAdmin;
                     <th data-sort="string-ins" style="width:20%;">Last modified</th>
                     <th data-sort="float" style="width:10%;">Size (mb)</th>
                     <?php if($isAdmin): ?>
-                        <th width="70">Actions</th><?php endif; ?>
+                        <th width="70">Actions</th>
+                    <?php endif; ?>
                 </tr>
                 </thead>
                 <tbody>
@@ -197,7 +198,7 @@ $shownAllowed = $shownAllowed || $isAdmin;
                         <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo $item; ?></td>
                         <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
                         <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo number_format(filesize($itemPath) / 1048576, 1); ?></td>
-                        <td><a data-toggle="tooltip" title="Create share" href="<?php echo $baseURL . "create-share=" . $currentPage . "/" . $item; ?>"><i class="icon <?php echo $LINK_FOLDER_CLASS; ?>"></i></a></td>
+                        <?php if($isAdmin): ?><td><a data-toggle="tooltip" title="Create share" href="<?php echo $baseURL . "create-share=" . $currentPage . "/" . $item; ?>"><i class="icon <?php echo $LINK_FOLDER_CLASS; ?>"></i></a></td><?php endif; ?>
                     </tr>
                     <?php $i++; ?>
                 <? endforeach; ?>

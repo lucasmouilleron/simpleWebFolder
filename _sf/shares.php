@@ -3,6 +3,7 @@
 /////////////////////////////////////////////////////////////////////////////
 $rootURL = getRootURL();
 $docRoot = getDocRoot();
+$rootFolder = realpath(__DIR__ . "/..");
 $baseURL = getBaseURL($docRoot);
 $share = null;
 $shares = [];
@@ -12,6 +13,7 @@ $sharesFolder = $rootFolder . "/_sf_shares";
 $needForce = false;
 $shareID = null;
 $shareDuration = "";
+$userWantsLogin = false;
 
 /////////////////////////////////////////////////////////////////////////////
 /// ADMIN
@@ -39,7 +41,7 @@ if($isAdmin && startsWith($currentPage, "/create-share="))
                 $share = getShare($sharesFolder, $shareID);
                 if(!isset($share) || $_POST["create-share-force-submit"])
                 {
-                    $share = createShare($sharesFolder, $shareID, $addShareFile, $shareDuration);
+                    $share = createShare($sharesFolder, $shareID, $addShareFile, $shareDuration, @$_POST["password"]);
                     $addShareFile = null;
                     $shareID = null;
                     $shareURL = $rootURL . $baseURL . "share=" . $share->ID;
@@ -79,10 +81,11 @@ if($isAdmin)
 /////////////////////////////////////////////////////////////////////////////
 /// SHARE DETAILS
 /////////////////////////////////////////////////////////////////////////////
-if($isAdmin && startsWith($currentPage, "/share="))
+if(startsWith($currentPage, "/share="))
 {
     $shareID = str_replace("/share=", "", $currentPage);
-    list($success, $hint) = getShareAndDownload($rootFolder, "_sf_shares", $shareID);
+    if(isset($_POST["password-submit"])) setPasswordShare($shareID, $_POST["password"]);
+    list($success, $hint, $userWantsLogin) = getShareAndDownload($rootFolder, "_sf_shares", $shareID, @$_POST["password"]);
     if(!$success) array_push($alerts, ["Can't get file", "The file you have requested is not available: " . $hint . "."]);
 }
 
@@ -120,7 +123,15 @@ if($isAdmin && startsWith($currentPage, "/share="))
     </div>
 <?php endforeach; ?>
 
-<?php if(!$isAdmin): ?>
+<?php if($userWantsLogin): ?>
+    <div class="authenticate section">
+        <div class="section-title">Protected area, please authenticate</div>
+        <form method="post">
+            <input type="password" name="password" placeholder="Password"/>
+            <input type="submit" name="password-submit" value="Login"/>
+        </form>
+    </div>
+<?php elseif(!$isAdmin): ?>
     <div class="authenticate section">
         <div class="section-title">Admin, please authenticate</div>
         <form method="post">
@@ -142,6 +153,7 @@ if($isAdmin && startsWith($currentPage, "/share="))
                 <input readonly type="text" placeholder="<?php echo $addShareFile; ?>"/>
                 <input type="text" name="shareID" placeholder="Share ID*" value="<?php echo $shareID; ?>"/>
                 <input type="text" name="duration" placeholder="Duration in days" value="<?php echo $shareDuration; ?>"/>
+                <input type="password" name="password" placeholder="Password" value=""/>
                 <?php if($needForce): ?><input type="submit" name="create-share-force-submit" value="Override share"/>
                 <?php else: ?> <input type="submit" name="create-share-submit" value="Create share"/> <?php endif; ?>
 
@@ -185,6 +197,7 @@ if($isAdmin && startsWith($currentPage, "/share="))
                     <th data-sort="string-ins">Link</th>
                     <th data-sort="string-ins">File</th>
                     <th data-sort="string-ins">Expiration</th>
+                    <th data-sort="string-ins">Password</th>
                     <th data-sort="int"># views</th>
                     <th data-sort="string-ins">Latest</th>
                     <th width="70">Actions</th>
@@ -198,6 +211,7 @@ if($isAdmin && startsWith($currentPage, "/share="))
                         <td onclick="window.open('<?php echo $shareURL; ?>')"><a><?php echo $shareURL ?></a></td>
                         <td onclick="window.open('<?php echo $rootURL . $baseURL . $share->file; ?>')"><a><?php echo $share->file; ?></a></td>
                         <td><?php echo getShareExpirationString($share) ?></td>
+                        <td><?php echo $share->password;?></td>
                         <td><?php echo count($share->views); ?></td>
                         <td>
                             <?php if(count($share->views) > 0): ?>

@@ -451,7 +451,7 @@ function getShare($sharesFolder, $shareID)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-function createShare($sharesFolder, $shareID, $file, $durationInDays)
+function createShare($sharesFolder, $shareID, $file, $durationInDays, $password)
 {
     $share = new stdClass();
     $share->ID = $shareID;
@@ -459,6 +459,7 @@ function createShare($sharesFolder, $shareID, $file, $durationInDays)
     $share->views = [];
     $share->creation = time();
     $share->duration = $durationInDays * 24 * 60 * 60;
+    $share->password = $password;
     return saveShare($sharesFolder, $shareID, $share);
 }
 
@@ -487,29 +488,51 @@ function removeShare($sharesFolder, $shareID)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-function getShareAndDownload($rootPath, $sharesFolder, $shareID)
+function getShareAndDownload($rootPath, $sharesFolder, $shareID, $password)
 {
     try
     {
         $sharesPath = $rootPath . "/" . $sharesFolder;
         $share = getShare($sharesPath, $shareID);
-        if($share == null) return [false, "share does not exist"];
+        if($share == null) return [false, "share does not exist", false];
         $file = $rootPath . "/" . $share->file;
-        if(!file_exists($file)) return [false, "share does not exist"];
+        if(!file_exists($file)) return [false, "share does not exist", false];
         if($share->duration == "") $share->duration = 0;
-        if($share->duration > 0 && time() - $share->creation > $share->duration) return [false, "share has expired"];
+        if($share->duration > 0 && time() - $share->creation > $share->duration) return [false, "share has expired", false];
         $view = new stdClass();
         $view->ip = getRealIpAddr();
         $view->date = time();
         array_push($share->views, $view);
         saveShare($sharesPath, $shareID, $share);
-        displayFile($file);
-        return [true, "OK"];
+        if(isShareAuthorized($share, $password))
+        {
+            displayFile($file);
+            return [true, "OK", false];
+        }
+        else
+        {
+            return [false, "Password is required", true];
+        }
     }
     catch(Exception $e)
     {
-        return [false, $e];
+        return [false, $e, false];
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+function isShareAuthorized($share, $password)
+{
+    if($share->password == null || $share->password == "") return true;
+    return $share->password == $password;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+function setPasswordShare($shareID, $password)
+{
+    setcookie($shareID, $password, 0);
+    $GLOBALS["password-share-" . $shareID] = $password;
 }
 
 
