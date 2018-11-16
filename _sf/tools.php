@@ -43,11 +43,9 @@ function zipFileAndDownload($rootPath, $path, $forbiddenItems, $sizeLimitInMB, $
         {
             $name .= "/";
             $location .= "/";
+//            if(!file_exists($this->rootPath . "/" . $location)) return;
             list($isProtected, $requiredPassword, $isAuthorized) = isAuthorized($this->rootPath, $location);
-            if(!$isAuthorized || downloadForbidden($location))
-            {
-                return;
-            }
+            if(!$isAuthorized || downloadForbidden($location)) return;
             $dir = opendir($location);
             while($file = readdir($dir))
             {
@@ -67,10 +65,7 @@ function zipFileAndDownload($rootPath, $path, $forbiddenItems, $sizeLimitInMB, $
                 else
                 {
                     $this->cumulatedSize += filesize($filePath);
-                    if($this->maxSizeReached())
-                    {
-                        return;
-                    }
+                    if($this->maxSizeReached()) return;
                 }
                 $do = $isDir ? "addDir" : "addFile";
                 $this->$do($location . $file, $name . $file);
@@ -85,6 +80,7 @@ function zipFileAndDownload($rootPath, $path, $forbiddenItems, $sizeLimitInMB, $
     $zipFile = $zipFolder . "/" . $folderName . ".zip";
     try
     {
+        if(!file_exists($path)) throw new Exception("Target does not exist");
         @mkdir($zipFolder);
         if(!is_dir($zipFolder))
         {
@@ -294,6 +290,12 @@ function getDocRoot()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+function getRootURL()
+{
+    return (isset($_SERVER['HTTPS']) ? "https" : "http") . "://" . $_SERVER["HTTP_HOST"];
+}
+
+///////////////////////////////////////////////////////////////////////////////
 function getBaseURL($docRoot)
 {
     return str_replace("/_sf", "", preg_replace("!^${docRoot}!", '', __DIR__)) . "/";
@@ -404,6 +406,28 @@ function startsWith($haystack, $needle)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+function getShares($sharesFolder, $max = 99)
+{
+    $items = scandir($sharesFolder);
+    $shares = [];
+    foreach($items as $item)
+    {
+        $shareID = basename($item);
+        if($shareID == "." || $shareID == ".." || startsWith($shareID, ".")) continue;
+        $share = getShare($sharesFolder, $shareID);
+        $share->ID = $shareID;
+        array_push($shares, $share);
+    }
+    function shareSort($u, $v)
+    {
+        return $v->creation - $u->creation;
+    }
+
+    usort($shares, "shareSort");
+    return array_slice($shares, 0, $max);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 function getShare($sharesFolder, $shareID)
 {
     $sharePath = $sharesFolder . "/" . $shareID;
@@ -417,12 +441,24 @@ function getShare($sharesFolder, $shareID)
     {
         flock($file, LOCK_SH);
         $data = json_decode(fread($file, filesize($sharePath)));
+        $data->ID = $shareID;
     }
     finally
     {
         fclose($file);
         return $data;
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+function createShare($sharesFolder, $shareID, $file)
+{
+    $share = new stdClass();
+    $share->ID = $shareID;
+    $share->file = $file;
+    $share->views = [];
+    $share->creation = time();
+    return saveShare($sharesFolder, $shareID, $share);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -438,8 +474,16 @@ function saveShare($sharesFolder, $shareID, $share)
     finally
     {
         fclose($file);
+        return $share;
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+function removeShare($sharesFolder, $shareID)
+{
+    @unlink($sharesFolder . "/" . $shareID);
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 function getShareAndDownload($rootPath, $sharesFolder, $shareID)
@@ -451,7 +495,10 @@ function getShareAndDownload($rootPath, $sharesFolder, $shareID)
         if($share == null) return false;
         $file = $rootPath . "/" . $share->file;
         if(!file_exists($file)) return false;
-        $share->views += 1;
+        $view = new stdClass();
+        $view->ip = getRealIpAddr();
+        $view->date = time();
+        array_push($share->views, $view);
         saveShare($sharesPath, $shareID, $share);
         displayFile($file);
         return true;
@@ -461,5 +508,15 @@ function getShareAndDownload($rootPath, $sharesFolder, $shareID)
         return false;
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+function getRealIpAddr()
+{
+    if(!empty($_SERVER['HTTP_CLIENT_IP'])) $ip = $_SERVER['HTTP_CLIENT_IP'];
+    elseif(!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+    else $ip = $_SERVER['REMOTE_ADDR'];
+    return $ip;
+}
+
 
 ?>

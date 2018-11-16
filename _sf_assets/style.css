@@ -53,6 +53,12 @@ a:hover {
     border-bottom: 3px solid #ccc;
 }
 
+.create-share {
+    background-color: #eee;
+    padding: 15px 25px;
+    border-bottom: 3px solid #ccc;
+}
+
 table {
     width: 100%;
     border-spacing: 0px;

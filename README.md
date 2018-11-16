@@ -20,10 +20,14 @@ For Apache web servers.
 - `cd _sf;composer install`
 - Drop the `_sf` folder in the root folder
 - Drop the `_sf_assets` folder in the root folder
+- Create the `_sf_shares` folders for shares to be activated
 - Drop the `.htaccess` file in the root folder
 
 ## Customisation
 - Don't edit files in `/_sf`
 - Create `/_sf_overrides` folder
     - Create `config.php` and override configs defined in `_sf/config.php`
-    - Create `style.css` and override styles 
+    - Create `style.css` and override styles
+    
+## TODO
+- Clean shares 

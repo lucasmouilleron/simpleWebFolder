@@ -10,22 +10,30 @@ $rootFolder = realpath(__DIR__ . "/..");
 $docRoot = getDocRoot();
 $baseURL = getBaseURL($docRoot);
 $currentPage = getCurrentPage($rootFolder, $baseURL);
-$currentPath = realpath($rootFolder . $currentPage);
+$currentPath = preg_replace('#/+#', '/', $rootFolder . $currentPage);
 $currentURL = getCurrentURL();
 $currentURLWithoutURI = getCurrentURLWithoutURI();
 $alerts = [];
 $wantAdmin = false;
-$shareID = null;
+$items = [];
 
 /////////////////////////////////////////////////////////////////////////////
 /// SHARES
 /////////////////////////////////////////////////////////////////////////////
-if(startsWith($currentPage, "/sid"))
+if($currentPage == "/shares" || startsWith($currentPage, "/share=") || startsWith($currentPage, "/create-share=") || startsWith($currentPage, "/remove-share="))
 {
-    $shareID = str_replace("/sid=", "", $currentPage);
-    $success = getShareAndDownload($rootFolder, "_sf_shares", $shareID);
-    if(!$success) array_push($alerts, ["Can't get file", "The file you have requested does not exist."]);
+    include __DIR__ . "/shares.php";
+    return;
 }
+
+/////////////////////////////////////////////////////////////////////////////
+/// ADMIN
+/////////////////////////////////////////////////////////////////////////////
+if(isset($_POST["admin-password-submit"])) setAdminPassword($_POST["password"]);
+$isAdmin = getAdminPassword() == $ADMIN_PASSWORD;
+if(isset($_POST["admin-password-submit"]) && !$isAdmin) array_push($alerts, ["Can't authenticate as admin", "Can't authenticate as admin. The password you provided is incorrect."]);
+if(isset($_GET["admin"]) && !$isAdmin) $wantAdmin = true;
+
 
 /////////////////////////////////////////////////////////////////////////////
 /// DOWNLOADS
@@ -37,25 +45,19 @@ if(isset($_GET["download"]))
 }
 
 /////////////////////////////////////////////////////////////////////////////
-/// ADMIN
-/////////////////////////////////////////////////////////////////////////////
-if(isset($_POST["admin-password-submit"])) setAdminPassword($_POST["password"]);
-$isAdmin = getAdminPassword() == $ADMIN_PASSWORD;
-if(isset($_POST["admin-password-submit"]) && !$isAdmin) array_push($alerts, ["Can't authenticate as admin", "Can't authenticate as admin. The password you provided is incorrect."]);
-if(isset($_GET["admin"]) && !$isAdmin) $wantAdmin = true;
-
+/// FILES AND FOLDERS
 /////////////////////////////////////////////////////////////////////////////
 if(!array_key_exists("__page__", $_GET)) header("Location: " . $baseURL);
 if(isset($_POST["password-submit"])) setPassword($rootFolder, $currentPath, $_POST["password"]);
 list($isProtected, $requiredPassword, $isAuthorized) = isAuthorized($rootFolder, $currentPath);
 if($isAdmin) $isAuthorized = true;
-$listingAllowed = !listingForbidden($currentPath) || $isAdmin;
-if(!$listingAllowed) array_push($alerts, ["Can't list folder", "You are not allowed to list this folder contents."]);
+$listingAllowed = !listingForbidden($currentPath);
 $downloadAllowed = !downloadForbidden($currentPath);
+$shownAllowed = !showForbidden($currentPath);
 if($isAuthorized)
 {
     $requiredPasswordDisplay = $requiredPassword;
-    if(!file_exists($currentPath) && !isset($shareID)) header("Location: " . $baseURL);
+    if(!file_exists($currentPath)) array_push($alerts, ["File not found", "The file " . $currentPage . " does not exist."]);
     if(file_exists($currentPath))
     {
         if(is_file($currentPath)) displayFile($currentPath);
@@ -64,6 +66,17 @@ if($isAuthorized)
     }
 }
 else $requiredPasswordDisplay = "- - - - - ";
+if(!$isAdmin && $isAuthorized && !$listingAllowed) array_push($alerts, ["Can't list folder", "You are not allowed to list this folder contents."]);
+if($isAdmin)
+{
+    $subAlerts = [];
+    if(!$listingAllowed) array_push($subAlerts, "Listing not allowed for non admin users");
+    if(!$shownAllowed) array_push($subAlerts, "Forlder not shown for non admin users");
+    if(!$downloadAllowed) array_push($subAlerts, "Folder not downloadble");
+    if(count($subAlerts) > 0) array_push($alerts, ["Special folder", implode("<br/>", $subAlerts)]);
+}
+$listingAllowed = $listingAllowed || $isAdmin;
+$shownAllowed = $shownAllowed || $isAdmin;
 
 ?>
 
@@ -93,12 +106,14 @@ else $requiredPasswordDisplay = "- - - - - ";
 <div class="name"><a href="<?php echo $baseURL; ?>"><?php echo $NAME; ?></a></div>
 
 <div class="navigation section">
-    <div class="parent" data-toggle="tooltip" title="go to parent folder"><?php if($currentPage != "/"): ?><a href="<?php echo cleanURL($baseURL . $currentPage . "/.."); ?>"><i class="icon <?php echo $PARENT_FOLDER_CLASS; ?>"></i></a><?php endif; ?></div>
-    <div id="link" data-clipboard-text="<?php echo $currentURL; ?>" data-toggle="tooltip" title="copy link<?php if($isProtected) echo " (protected folder)"; ?>"><i class="icon <?php echo $LINK_FOLDER_CLASS; ?>"></i></div>
+    <div class="parent" data-toggle="tooltip" title="Go to parent folder"><?php if($currentPage != "/"): ?><a href="<?php echo cleanURL($baseURL . $currentPage . "/.."); ?>"><i class="icon <?php echo $PARENT_FOLDER_CLASS; ?>"></i></a><?php endif; ?></div>
+    <!--<div id="link" data-clipboard-text="<?php echo $currentURL; ?>" data-toggle="tooltip" title="copy link<?php if($isProtected) echo " (protected folder)"; ?>"><i class="icon <?php echo $LINK_FOLDER_CLASS; ?>"></i></div>-->
     <?php if($downloadAllowed): ?>
-        <div id="download" data-toggle="tooltip" title="download folder"><a href="<?php echo $currentURLWithoutURI . "?download" ?>"><i class="icon <?php echo $DOWNLOAD_FOLDER_CLASS; ?>"></i></a></div>
+        <div id="download" data-toggle="tooltip" title="Download folder"><a href="<?php echo $currentURLWithoutURI . "?download" ?>"><i class="icon <?php echo $DOWNLOAD_FOLDER_CLASS; ?>"></i></a></div><?php endif; ?>
+    <div class="protected" data-toggle="tooltip" title="<?php if($isProtected) echo $requiredPasswordDisplay; else echo "No password needed"; ?>"><i class="icon <?php if($isProtected) echo $PROTECTED_FOLDER_CLASS; else echo $NON_PROTECTED_FOLDER_CLASS; ?>"></i></div>
+    <?php if($isAdmin): ?>
+        <div class="shares" data-toggle="tooltip" title="Shares management"><a href="<?php echo $baseURL . "shares"; ?>"><i class="icon <?php echo $LINK_FOLDER_CLASS; ?>"></i></a></div>
     <?php endif; ?>
-    <div class="protected" data-toggle="tooltip" title="<?php if($isProtected) echo $requiredPasswordDisplay; else echo "no password needed"; ?>"><i class="icon <?php if($isProtected) echo $PROTECTED_FOLDER_CLASS; else echo $NON_PROTECTED_FOLDER_CLASS; ?>"></i></div>
     <div class="page"><?php echo $currentPage; ?></div>
 </div>
 
@@ -109,26 +124,23 @@ else $requiredPasswordDisplay = "- - - - - ";
     </div>
 <?php endforeach; ?>
 
-<?php if($wantAdmin): ?>
+<?php if($wantAdmin && !$isAdmin): ?>
     <div class="authenticate section">
         <div class="section-title">Admin, please authenticate</div>
         <form method="post">
-            <input type="password" name="password" placeholder="password"/>
-            <input type="submit" name="admin-password-submit" value="login"/>
+            <input type="password" name="password" placeholder="Password"/>
+            <input type="submit" name="admin-password-submit" value="Login"/>
         </form>
     </div>
-<?php endif; ?>
-
-<?php if(!$isAuthorized && !$wantAdmin): ?>
+<?php elseif(!$isAuthorized && !$wantAdmin): ?>
     <div class="authenticate section">
         <div class="section-title">Protected area, please authenticate</div>
         <form method="post">
-            <input type="password" name="password" placeholder="password"/>
-            <input type="submit" name="password-submit" value="login"/>
+            <input type="password" name="password" placeholder="Password"/>
+            <input type="submit" name="password-submit" value="Login"/>
         </form>
     </div>
 <?php elseif(isset($items)): ?>
-
     <?php if($readmeContent != ""): ?>
         <div class="readme section">
             <div class="readme-content"><?php echo $readmeContent ?></div>
@@ -150,10 +162,7 @@ else $requiredPasswordDisplay = "- - - - - ";
                 <tbody>
                 <?php $i = 0; ?>
                 <?php foreach($items["folders"] as $item => $itemPath): ?>
-                    <tr onclick="location.href='<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>'" class="<?php if($i % 2 == 1)
-                    {
-                        echo "even";
-                    } ?>">
+                    <tr onclick="location.href='<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>'" class="<?php if($i % 2 == 1) echo "even"; ?>">
                         <td class="icon <?php echo $FOLDER_CLASS ?>"></td>
                         <td><?php echo $item; ?></td>
                         <td><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
@@ -176,19 +185,19 @@ else $requiredPasswordDisplay = "- - - - - ";
                     <th data-sort="string-ins">Name</th>
                     <th data-sort="string-ins" style="width:20%;">Last modified</th>
                     <th data-sort="float" style="width:10%;">Size (mb)</th>
+                    <?php if($isAdmin): ?>
+                        <th width="50">Actions</th><?php endif; ?>
                 </tr>
                 </thead>
                 <tbody>
                 <?php $i = 0; ?>
                 <?php foreach($items["files"] as $item => $itemPath): ?>
-                    <tr onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')" class="<?php if($i % 2 == 1)
-                    {
-                        echo "even";
-                    } ?>">
-                        <td class="icon <?php echo getFileExtensionClass($itemPath, $EXTENSIONS_CLASSES) ?>"></td>
-                        <td><?php echo $item; ?></td>
-                        <td><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
-                        <td><?php echo number_format(filesize($itemPath) / 1048576, 1); ?></td>
+                    <tr class="<?php if($i % 2 == 1) echo "even"; ?>">
+                        <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')" class="icon <?php echo getFileExtensionClass($itemPath, $EXTENSIONS_CLASSES) ?>"></td>
+                        <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo $item; ?></td>
+                        <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
+                        <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo number_format(filesize($itemPath) / 1048576, 1); ?></td>
+                        <td><a data-toggle="tooltip" title="Create share" href="<?php echo $baseURL . "create-share=" . $currentPage . "/" . $item; ?>"><i class="icon <?php echo $LINK_FOLDER_CLASS; ?>"></i></a></td>
                     </tr>
                     <?php $i++; ?>
                 <? endforeach; ?>
@@ -211,17 +220,6 @@ else $requiredPasswordDisplay = "- - - - - ";
             var tableElt = data.$th.parent().parent().parent();
             tableElt.find("tr:even").addClass("even");
             tableElt.find("tr:odd").removeClass("even");
-        });
-
-        $("a").each(function () {
-            var a = new RegExp("/" + window.location.host + "/");
-            if (!a.test(this.href)) {
-                $(this).click(function (event) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    window.open(this.href, "_blank");
-                });
-            }
         });
     });
 </script>
