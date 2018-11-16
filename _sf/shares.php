@@ -11,6 +11,7 @@ $isAdmin = false;
 $sharesFolder = $rootFolder . "/_sf_shares";
 $needForce = false;
 $shareID = null;
+$shareDuration = "";
 
 /////////////////////////////////////////////////////////////////////////////
 /// ADMIN
@@ -31,13 +32,14 @@ if($isAdmin && startsWith($currentPage, "/create-share="))
         else
         {
             $shareID = clean($_POST["shareID"]);
+            $shareDuration = floatval($_POST["duration"]);
             if($shareID == "") array_push($alerts, ["Can't create share", "Share ID provided is invalid."]);
             else
             {
                 $share = getShare($sharesFolder, $shareID);
                 if(!isset($share) || $_POST["create-share-force-submit"])
                 {
-                    $share = createShare($sharesFolder, $shareID, $addShareFile);
+                    $share = createShare($sharesFolder, $shareID, $addShareFile, $shareDuration);
                     $addShareFile = null;
                     $shareID = null;
                     $shareURL = $rootURL . $baseURL . "share=" . $share->ID;
@@ -71,7 +73,7 @@ if($isAdmin)
 {
     if(isset($_GET["share"])) $share = getShare($sharesFolder, $_GET["share"]);
     $shares = getShares($sharesFolder);
-    if(count($shares) == 0) array_push($alerts, ["No shares", "No shares available. Add shares from file browsing @ <a href='" . $rootURL . $baseURL . "'>" . $rootURL . $baseURL . "</a>"]);
+//    if(count($shares) == 0) array_push($alerts, ["No shares", "No shares available. Add shares from file browsing @ <a href='" . $rootURL . $baseURL . "'>" . $rootURL . $baseURL . "</a>"]);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -80,8 +82,8 @@ if($isAdmin)
 if($isAdmin && startsWith($currentPage, "/share="))
 {
     $shareID = str_replace("/share=", "", $currentPage);
-    $success = getShareAndDownload($rootFolder, "_sf_shares", $shareID);
-    if(!$success) array_push($alerts, ["Can't get file", "The file you have requested does not exist."]);
+    list($success, $hint) = getShareAndDownload($rootFolder, "_sf_shares", $shareID);
+    if(!$success) array_push($alerts, ["Can't get file", "The file you have requested is not available: " . $hint . "."]);
 }
 
 ?>
@@ -139,6 +141,7 @@ if($isAdmin && startsWith($currentPage, "/share="))
             <form method="post">
                 <input readonly type="text" placeholder="<?php echo $addShareFile; ?>"/>
                 <input type="text" name="shareID" placeholder="Share ID*" value="<?php echo $shareID; ?>"/>
+                <input type="text" name="duration" placeholder="Duration in days" value="<?php echo $shareDuration; ?>"/>
                 <?php if($needForce): ?><input type="submit" name="create-share-force-submit" value="Override share"/>
                 <?php else: ?> <input type="submit" name="create-share-submit" value="Create share"/> <?php endif; ?>
 
@@ -156,10 +159,16 @@ if($isAdmin && startsWith($currentPage, "/share="))
                 </tr>
                 </thead>
                 <?php $i = 0; ?>
+                <?php if(count($share->views) == 0): ?>
+                    <tr>
+                        <td colspan="20">
+                            <center>No views yet</center>
+                        </td>
+                    </tr><?php endif; ?>
                 <?php foreach($share->views as $view): ?>
                     <tr class="<?php if($i % 2 == 1) echo "even"; ?>">
                         <td><?php echo $view->ip; ?></td>
-                        <td><?php echo date("Ymd @ G:i", $view->date); ?></td>
+                        <td><?php echo date("Ymd @ H:i", $view->date); ?></td>
                     </tr>
                     <?php $i++; ?>
                 <?php endforeach; ?>
@@ -175,6 +184,7 @@ if($isAdmin && startsWith($currentPage, "/share="))
                     <th data-sort="string-ins">ID</th>
                     <th data-sort="string-ins">Link</th>
                     <th data-sort="string-ins">File</th>
+                    <th data-sort="string-ins">Expiration</th>
                     <th data-sort="int"># views</th>
                     <th data-sort="string-ins">Latest</th>
                     <th width="70">Actions</th>
@@ -185,12 +195,13 @@ if($isAdmin && startsWith($currentPage, "/share="))
                     <?php $shareURL = $rootURL . $baseURL . "share=" . $share->ID; ?>
                     <tr class="<?php if($i % 2 == 1) echo "even"; ?>">
                         <td><?php echo $share->ID; ?></td>
-                        <td onclick="window.open('<?php echo $baseURL . "share=" . $share->ID; ?>')"><a><?php echo $shareURL ?></a></td>
-                        <td onclick="window.open('<?php echo $baseURL . $share->file; ?>')"><a><?php echo $share->file; ?></a></td>
+                        <td onclick="window.open('<?php echo $shareURL; ?>')"><a><?php echo $shareURL ?></a></td>
+                        <td onclick="window.open('<?php echo $rootURL . $baseURL . $share->file; ?>')"><a><?php echo $share->file; ?></a></td>
+                        <td><?php echo getShareExpirationString($share) ?></td>
                         <td><?php echo count($share->views); ?></td>
                         <td>
                             <?php if(count($share->views) > 0): ?>
-                                <?php echo date("Ymd @ G:i", $share->views[count($share->views) - 1]->date); ?>
+                                <?php echo date("Ymd @ H:i", $share->views[count($share->views) - 1]->date); ?>
                             <?php endif; ?>
                         </td>
                         <td>

@@ -30,4 +30,4 @@ For Apache web servers.
     - Create `style.css` and override styles
     
 ## TODO
-- Clean shares 
+- Clean shares

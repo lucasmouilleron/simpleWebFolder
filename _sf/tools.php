@@ -451,13 +451,14 @@ function getShare($sharesFolder, $shareID)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-function createShare($sharesFolder, $shareID, $file)
+function createShare($sharesFolder, $shareID, $file, $durationInDays)
 {
     $share = new stdClass();
     $share->ID = $shareID;
     $share->file = $file;
     $share->views = [];
     $share->creation = time();
+    $share->duration = $durationInDays * 24 * 60 * 60;
     return saveShare($sharesFolder, $shareID, $share);
 }
 
@@ -492,21 +493,34 @@ function getShareAndDownload($rootPath, $sharesFolder, $shareID)
     {
         $sharesPath = $rootPath . "/" . $sharesFolder;
         $share = getShare($sharesPath, $shareID);
-        if($share == null) return false;
+        if($share == null) return [false, "share does not exist"];
         $file = $rootPath . "/" . $share->file;
-        if(!file_exists($file)) return false;
+        if(!file_exists($file)) return [false, "share does not exist"];
+        if($share->duration == "") $share->duration = 0;
+        if($share->duration > 0 && time() - $share->creation > $share->duration) return [false, "share has expired"];
         $view = new stdClass();
         $view->ip = getRealIpAddr();
         $view->date = time();
         array_push($share->views, $view);
         saveShare($sharesPath, $shareID, $share);
         displayFile($file);
-        return true;
+        return [true, "OK"];
     }
     catch(Exception $e)
     {
-        return false;
+        return [false, $e];
     }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+function getShareExpirationString($share)
+{
+    if($share->duration == "") $share->duration = 0;
+    if($share->duration == 0) return "Never";
+    $expiration = $share->duration - (time() - $share->creation);
+    if($expiration < 0) return "Expired";
+    return date("Ymd @ H:i", time() + $expiration);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

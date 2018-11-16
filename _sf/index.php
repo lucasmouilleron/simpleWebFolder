@@ -186,7 +186,7 @@ $shownAllowed = $shownAllowed || $isAdmin;
                     <th data-sort="string-ins" style="width:20%;">Last modified</th>
                     <th data-sort="float" style="width:10%;">Size (mb)</th>
                     <?php if($isAdmin): ?>
-                        <th width="50">Actions</th><?php endif; ?>
+                        <th width="70">Actions</th><?php endif; ?>
                 </tr>
                 </thead>
                 <tbody>
