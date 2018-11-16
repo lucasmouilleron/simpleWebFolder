@@ -207,7 +207,7 @@ if($isAdmin && startsWith($currentPage, "/share="))
                         <td>
                             <a class="link" data-clipboard-text="<?php echo $shareURL; ?>" data-toggle="tooltip" title="Copy link"><i class="icon <?php echo $LINK_FOLDER_CLASS; ?>"></i></a>
                             <a data-toggle="tooltip" title="Details" href="<?php echo $baseURL . "shares?share=" . $share->ID; ?>"><i class="icon <?php echo $DETAIL_CLASS; ?>"></i></a>
-                            <a data-toggle="tooltip" title="Remove" href="<?php echo $baseURL . "remove-share=" . $share->ID; ?>"><i class="icon <?php echo $DELETE_CLASS; ?>"></i></a>
+                            <a data-toggle="tooltip" title="Remove" class="confirmation" href="<?php echo $baseURL . "remove-share=" . $share->ID; ?>"><i class="icon <?php echo $DELETE_CLASS; ?>"></i></a>
                         </td>
                     </tr>
                     <?php $i++; ?>
@@ -223,6 +223,10 @@ if($isAdmin && startsWith($currentPage, "/share="))
         var clipboard = new ClipboardJS(".link");
         clipboard.on('success', function (e) {
             alert("Link copied to clipboard")
+        });
+
+        $('.confirmation').on('click', function () {
+            return confirm('Are you sure?');
         });
 
         $('[data-toggle="tooltip"]').tooltipster({theme: "tooltipster-borderless", animationDuration: 200, delay: 20, side: "bottom"});
