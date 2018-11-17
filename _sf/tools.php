@@ -372,7 +372,7 @@ function displayFile($filePath)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-function scanFolder($folderPath, $forbiddenItems)
+function scanFolder($folderPath, $forbiddenItems, $isAdmin)
 {
     $items = scandir($folderPath);
     $filesMap = array();
@@ -385,7 +385,7 @@ function scanFolder($folderPath, $forbiddenItems)
             // continue;
         }
         if(inArrayString($item, $forbiddenItems)) continue;
-        if(showForbidden($itemPath)) continue;
+        if(!$isAdmin && showForbidden($itemPath)) continue;
         if(is_dir($itemPath)) $foldersMap[$item] = $itemPath;
         else $filesMap[$item] = $itemPath;
     }
@@ -492,8 +492,7 @@ function getShareAndDownload($rootPath, $sharesFolder, $shareID, $password)
 {
     try
     {
-        $sharesPath = $rootPath . "/" . $sharesFolder;
-        $share = getShare($sharesPath, $shareID);
+        $share = getShare($sharesFolder, $shareID);
         if($share == null) return [false, "share does not exist", false];
         $file = $rootPath . "/" . $share->file;
         if(!file_exists($file)) return [false, "share does not exist", false];
@@ -503,7 +502,7 @@ function getShareAndDownload($rootPath, $sharesFolder, $shareID, $password)
         $view->ip = getRealIpAddr();
         $view->date = time();
         array_push($share->views, $view);
-        saveShare($sharesPath, $shareID, $share);
+        saveShare($sharesFolder, $shareID, $share);
         if(isShareAuthorized($share, $password))
         {
             displayFile($file);

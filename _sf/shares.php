@@ -1,10 +1,13 @@
 <?php
 
 /////////////////////////////////////////////////////////////////////////////
+/// SETUP
+/////////////////////////////////////////////////////////////////////////////
 $rootURL = getRootURL();
 $docRoot = getDocRoot();
 $rootFolder = realpath(__DIR__ . "/..");
 $baseURL = getBaseURL($docRoot);
+$alerts = [];
 $share = null;
 $shares = [];
 $addShareFile = null;
@@ -14,6 +17,9 @@ $needForce = false;
 $shareID = null;
 $shareDuration = "";
 $userWantsLogin = false;
+$defaultShareID = uniqid();
+$maxShares = 50;
+$wantAdmin = false;
 
 /////////////////////////////////////////////////////////////////////////////
 /// ADMIN
@@ -21,6 +27,22 @@ $userWantsLogin = false;
 if(isset($_POST["admin-password-submit"])) setAdminPassword($_POST["password"]);
 $isAdmin = getAdminPassword() == $ADMIN_PASSWORD;
 if(isset($_POST["admin-password-submit"]) && !$isAdmin) array_push($alerts, ["Can't authenticate as admin", "Can't authenticate as admin. The password you provided is incorrect."]);
+if(isset($_GET["admin"])) $wantAdmin = true;
+
+/////////////////////////////////////////////////////////////////////////////
+/// SHARE DETAILS
+/////////////////////////////////////////////////////////////////////////////
+if(startsWith($currentPage, "/share="))
+{
+    $shareID = str_replace("/share=", "", $currentPage);
+    if(isset($_POST["password-submit"])) setPasswordShare($shareID, $_POST["password"]);
+    if($wantAdmin) $share = getShare($sharesFolder, $shareID);
+    else
+    {
+        list($success, $hint, $userWantsLogin) = getShareAndDownload($rootFolder, $sharesFolder, $shareID, @$_POST["password"]);
+        if(!$success) array_push($alerts, ["Can't get file", "The file you have requested is not available: " . $hint . "."]);
+    }
+}
 
 /////////////////////////////////////////////////////////////////////////////
 /// SHARE CREATE
@@ -33,8 +55,10 @@ if($isAdmin && startsWith($currentPage, "/create-share="))
         if(!isset($_POST["shareID"])) array_push($alerts, ["Can't create share", "No share ID provided."]);
         else
         {
-            $shareID = clean($_POST["shareID"]);
+            $shareID = $_POST["shareID"];
             $shareDuration = floatval($_POST["duration"]);
+            if($shareID == "") $shareID = $_POST["defaultShareID"];
+            $shareID = clean($shareID);
             if($shareID == "") array_push($alerts, ["Can't create share", "Share ID provided is invalid."]);
             else
             {
@@ -74,20 +98,10 @@ if($isAdmin && startsWith($currentPage, "/remove-share="))
 if($isAdmin)
 {
     if(isset($_GET["share"])) $share = getShare($sharesFolder, $_GET["share"]);
-    $shares = getShares($sharesFolder);
+    $shares = getShares($sharesFolder, $maxShares);
 //    if(count($shares) == 0) array_push($alerts, ["No shares", "No shares available. Add shares from file browsing @ <a href='" . $rootURL . $baseURL . "'>" . $rootURL . $baseURL . "</a>"]);
 }
 
-/////////////////////////////////////////////////////////////////////////////
-/// SHARE DETAILS
-/////////////////////////////////////////////////////////////////////////////
-if(startsWith($currentPage, "/share="))
-{
-    $shareID = str_replace("/share=", "", $currentPage);
-    if(isset($_POST["password-submit"])) setPasswordShare($shareID, $_POST["password"]);
-    list($success, $hint, $userWantsLogin) = getShareAndDownload($rootFolder, "_sf_shares", $shareID, @$_POST["password"]);
-    if(!$success) array_push($alerts, ["Can't get file", "The file you have requested is not available: " . $hint . "."]);
-}
 
 ?>
 
@@ -108,12 +122,12 @@ if(startsWith($currentPage, "/share="))
 <body>
 
 <div class="header">
-    <a href="<?php echo $baseURL; ?>">
+    <a href="<?php echo $rootURL . $baseURL . "shares"; ?>">
         <div class="logo"></div>
     </a>
 </div>
 
-<div class="name"><a href="<?php echo $baseURL; ?>"><?php echo $NAME; ?></a></div>
+<div class="name"><a href="<?php echo $rootURL . $baseURL . "shares"; ?>"><?php echo $NAME; ?></a></div>
 
 
 <?php foreach($alerts as $alert): ?>
@@ -142,27 +156,47 @@ if(startsWith($currentPage, "/share="))
 <?php else: ?>
     <div class="readme section">
         <div class="readme-content">
-            Add shares from file browsing @ <a href="<?php echo $rootURL . $baseURL; ?>"><?php echo $rootURL . $baseURL; ?></a>
+            Add shares from file browsing @ <a href="<?php echo $rootURL . $baseURL; ?>" target="_files"><?php echo $rootURL . $baseURL; ?></a>
         </div>
     </div>
-
     <?php if(isset($addShareFile)): ?>
         <div class="create-share section">
             <div class="section-title">Create share</div>
             <form method="post">
                 <input readonly type="text" placeholder="<?php echo $addShareFile; ?>"/>
-                <input type="text" name="shareID" placeholder="Share ID*" value="<?php echo $shareID; ?>"/>
+                <input type="text" name="shareID" placeholder="Share ID* (default: <?php echo $defaultShareID; ?>)" value="<?php echo $shareID; ?>"/>
+                <input type="hidden" name="defaultShareID" value="<?php echo $defaultShareID; ?>"/>
                 <input type="text" name="duration" placeholder="Duration in days" value="<?php echo $shareDuration; ?>"/>
                 <input type="password" name="password" placeholder="Password" value=""/>
                 <?php if($needForce): ?><input type="submit" name="create-share-force-submit" value="Override share"/>
                 <?php else: ?> <input type="submit" name="create-share-submit" value="Create share"/> <?php endif; ?>
-
             </form>
         </div>
     <?php endif; ?>
     <?php if(isset($share)): ?>
         <div class="share section">
-            <div class="section-title">Share <?php echo $share->ID; ?> - <?php echo count($share->views); ?> views</div>
+            <div class="section-title">Share <?php echo $share->ID; ?></div>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Link</th>
+                    <th>File</th>
+                    <th># views</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td><?php echo $share->ID; ?></td>
+                    <td><a href="<?php echo $rootURL . $baseURL . "share=" . $share->ID; ?>" target="_<?php echo $share->ID; ?>"><?php echo $rootURL . $baseURL . "share=" . $share->ID; ?></a></td>
+                    <td><a href="<?php echo $rootURL . $baseURL . $share->file; ?>" target="_files"><?php echo $share->file; ?></a></td>
+                    <td><?php echo count($share->views); ?></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="share section">
+            <div class="section-title">Share <?php echo $share->ID; ?> views</div>
             <table>
                 <thead>
                 <tr>
@@ -170,6 +204,7 @@ if(startsWith($currentPage, "/share="))
                     <th data-sort="string-ins">Date</th>
                 </tr>
                 </thead>
+                <tbody>
                 <?php $i = 0; ?>
                 <?php if(count($share->views) == 0): ?>
                     <tr>
@@ -177,41 +212,41 @@ if(startsWith($currentPage, "/share="))
                             <center>No views yet</center>
                         </td>
                     </tr><?php endif; ?>
-                <?php foreach($share->views as $view): ?>
+                <?php foreach(array_reverse($share->views) as $view): ?>
                     <tr class="<?php if($i % 2 == 1) echo "even"; ?>">
                         <td><?php echo $view->ip; ?></td>
                         <td><?php echo date("Ymd @ H:i", $view->date); ?></td>
                     </tr>
                     <?php $i++; ?>
                 <?php endforeach; ?>
+                </tbody>
             </table>
         </div>
     <?php endif; ?>
     <?php if(count($shares) > 0): ?>
         <div class="shares section">
-            <div class="section-title">Latest shares</div>
+            <div class="section-title">Latest <?php echo $maxShares; ?> shares</div>
             <table>
                 <thead>
                 <tr>
                     <th data-sort="string-ins">ID</th>
-                    <th data-sort="string-ins">Link</th>
                     <th data-sort="string-ins">File</th>
-                    <th data-sort="string-ins">Expiration</th>
+                    <th data-sort="string-ins" width="160">Expiration</th>
                     <th data-sort="string-ins">Password</th>
-                    <th data-sort="int"># views</th>
-                    <th data-sort="string-ins">Latest</th>
+                    <th data-sort="int" width="50"># views</th>
+                    <th data-sort="string-ins" width="160">Latest</th>
                     <th width="70">Actions</th>
                 </tr>
                 </thead>
+                <tbody>
                 <?php $i = 0; ?>
                 <?php foreach($shares as $share): ?>
                     <?php $shareURL = $rootURL . $baseURL . "share=" . $share->ID; ?>
                     <tr class="<?php if($i % 2 == 1) echo "even"; ?>">
                         <td><?php echo $share->ID; ?></td>
-                        <td onclick="window.open('<?php echo $shareURL; ?>')"><a><?php echo $shareURL ?></a></td>
                         <td onclick="window.open('<?php echo $rootURL . $baseURL . $share->file; ?>')"><a><?php echo $share->file; ?></a></td>
                         <td><?php echo getShareExpirationString($share) ?></td>
-                        <td><?php echo $share->password;?></td>
+                        <td><?php echo $share->password; ?></td>
                         <td><?php echo count($share->views); ?></td>
                         <td>
                             <?php if(count($share->views) > 0): ?>
@@ -226,17 +261,22 @@ if(startsWith($currentPage, "/share="))
                     </tr>
                     <?php $i++; ?>
                 <?php endforeach; ?>
+                </tbody>
             </table>
         </div>
     <?php endif; ?>
 
 <?php endif; ?>
 
+<div class="footer"><?php echo $NAME; ?> - <?php echo $CREDITS; ?></div>
+
 <script>
     $(document).ready(function () {
+        window.name = "_shares";
+
         var clipboard = new ClipboardJS(".link");
         clipboard.on('success', function (e) {
-            alert("Link copied to clipboard")
+            alert("Link " + e.text + " copied to clipboard")
         });
 
         $('.confirmation').on('click', function () {

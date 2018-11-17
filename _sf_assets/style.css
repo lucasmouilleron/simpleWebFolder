@@ -213,3 +213,21 @@ input[type=submit] {
 input[type=submit]:hover {
     opacity: 1;
 }
+
+.footer {
+    margin-top:40px;
+    border-top:3px solid #ddd;
+    padding:20px 0 0 0;
+    text-align: center;
+    color:#d0d0d0;
+}
+
+.logo {
+    background: url("logo.png");
+    width:100px;
+    height:100px;
+    background-size: cover;
+    /*margin:0 auto;*/
+    margin:0 0 30px 0;
+    display:block;
+}

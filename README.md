@@ -32,3 +32,4 @@ For Apache web servers.
     
 ## TODO
 - Clean shares
+- Multiple passwords
