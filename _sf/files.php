@@ -38,14 +38,13 @@ if(isset($_GET["download"]))
 /////////////////////////////////////////////////////////////////////////////
 if(!array_key_exists("__page__", $_GET)) header("Location: " . $baseURL);
 if(isset($_POST["password-submit"])) setPassword($rootFolder, $currentPath, $_POST["password"]);
-list($isProtected, $requiredPassword, $isAuthorized) = isAuthorized($rootFolder, $currentPath);
+list($isProtected, $requiredPasswords, $isAuthorized) = isAuthorized($rootFolder, $currentPath);
 if($isAdmin) $isAuthorized = true;
 $listingAllowed = !listingForbidden($currentPath);
 $downloadAllowed = !downloadForbidden($currentPath);
 $shownAllowed = !showForbidden($currentPath);
 if($isAuthorized)
 {
-    $requiredPasswordDisplay = $requiredPassword;
     if(!file_exists($currentPath)) array_push($alerts, ["File not found", "The file " . $currentPage . " does not exist."]);
     if(file_exists($currentPath))
     {
@@ -54,12 +53,11 @@ if($isAuthorized)
         $readmeContent = getReadme($currentPath, true);
     }
 }
-else $requiredPasswordDisplay = "- - - - - ";
 if(!$isAdmin && $isAuthorized && !$listingAllowed) array_push($alerts, ["Can't list folder", "You are not allowed to list this folder contents."]);
 if($isAdmin)
 {
     $subAlerts = [];
-    if($isProtected) array_push($subAlerts, "Password protected: " . $requiredPassword);
+    if($isProtected) array_push($subAlerts, "Password protected: " . implode(" or ", $requiredPasswords));
     if(!$listingAllowed) array_push($subAlerts, "Listing not allowed for non admin users");
     if(!$shownAllowed) array_push($subAlerts, "Forlder not shown for non admin users");
     if(!$downloadAllowed) array_push($subAlerts, "Folder not downloadble");

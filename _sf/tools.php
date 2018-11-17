@@ -44,7 +44,7 @@ function zipFileAndDownload($rootPath, $path, $forbiddenItems, $sizeLimitInMB, $
             $name .= "/";
             $location .= "/";
 //            if(!file_exists($this->rootPath . "/" . $location)) return;
-            list($isProtected, $requiredPassword, $isAuthorized) = isAuthorized($this->rootPath, $location);
+            list($isProtected, $requiredPasswords, $isAuthorized) = isAuthorized($this->rootPath, $location);
             if(!$isAuthorized || downloadForbidden($location)) return;
             $dir = opendir($location);
             while($file = readdir($dir))
@@ -55,7 +55,7 @@ function zipFileAndDownload($rootPath, $path, $forbiddenItems, $sizeLimitInMB, $
                 $isDir = filetype($filePath) == "dir";
                 if($isDir)
                 {
-                    list($isProtected, $requiredPassword, $isAuthorized) = isAuthorized($this->rootPath, $filePath);
+                    list($isProtected, $requiredPasswords, $isAuthorized) = isAuthorized($this->rootPath, $filePath);
                     if(!$isAuthorized || downloadForbidden($filePath))
                     {
                         //$this->addDir($filePath, $name . $file . "-not-authorized", false);
@@ -216,9 +216,9 @@ function isAuthorized($rootPath, $path)
     {
         return [false, "", true];
     }
-    $requiredPassword = file_get_contents($rootPath . "/" . $lowerProtectedPath . "/password");
+    $requiredPasswords = explode("\n", file_get_contents($rootPath . "/" . $lowerProtectedPath . "/password"));
     $savedPassword = getPassword($lowerProtectedPath);
-    return [true, $requiredPassword, $savedPassword == $requiredPassword];
+    return [true, $requiredPasswords, in_array($savedPassword, $requiredPasswords)];
 }
 
 
