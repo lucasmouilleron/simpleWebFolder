@@ -22,6 +22,14 @@ $maxShares = 50;
 $wantAdmin = false;
 
 /////////////////////////////////////////////////////////////////////////////
+/// ENABLED
+/////////////////////////////////////////////////////////////////////////////
+if(!$SHARING_ENABLED)
+{
+    array_push($alerts, ["Can't share", "Sharing is not enabled."]);
+}
+
+/////////////////////////////////////////////////////////////////////////////
 /// ADMIN
 /////////////////////////////////////////////////////////////////////////////
 if(isset($_POST["admin-password-submit"])) setAdminPassword($_POST["password"]);
@@ -32,7 +40,7 @@ if(isset($_GET["admin"])) $wantAdmin = true;
 /////////////////////////////////////////////////////////////////////////////
 /// SHARE DETAILS
 /////////////////////////////////////////////////////////////////////////////
-if(startsWith($currentPage, "/share="))
+if($SHARING_ENABLED && startsWith($currentPage, "/share="))
 {
     $shareID = str_replace("/share=", "", $currentPage);
     if(isset($_POST["password-submit"])) setPasswordShare($shareID, $_POST["password"]);
@@ -47,7 +55,7 @@ if(startsWith($currentPage, "/share="))
 /////////////////////////////////////////////////////////////////////////////
 /// SHARE CREATE
 /////////////////////////////////////////////////////////////////////////////
-if($isAdmin && startsWith($currentPage, "/create-share="))
+if($SHARING_ENABLED && $isAdmin && startsWith($currentPage, "/create-share="))
 {
     $addShareFile = str_replace("/create-share=", "", $currentPage);
     if(isset($_POST["create-share-submit"]) || isset($_POST["create-share-force-submit"]))
@@ -84,7 +92,7 @@ if($isAdmin && startsWith($currentPage, "/create-share="))
 /////////////////////////////////////////////////////////////////////////////
 /// SHARE DELETE
 /////////////////////////////////////////////////////////////////////////////
-if($isAdmin && startsWith($currentPage, "/remove-share="))
+if($SHARING_ENABLED && $isAdmin && startsWith($currentPage, "/remove-share="))
 {
     $shareID = str_replace("/remove-share=", "", $currentPage);
     if($shareID == "") array_push($alerts, ["Can't remove share", "Share ID provided is invalid"]);
@@ -95,7 +103,7 @@ if($isAdmin && startsWith($currentPage, "/remove-share="))
 /////////////////////////////////////////////////////////////////////////////
 /// SHARES DETAILS
 /////////////////////////////////////////////////////////////////////////////
-if($isAdmin)
+if($SHARING_ENABLED && $isAdmin)
 {
     if(isset($_GET["share"])) $share = getShare($sharesFolder, $_GET["share"]);
     $shares = getShares($sharesFolder, $maxShares);

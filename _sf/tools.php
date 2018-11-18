@@ -44,7 +44,7 @@ function zipFileAndDownload($rootPath, $path, $forbiddenItems, $sizeLimitInMB, $
             $name .= "/";
             $location .= "/";
 //            if(!file_exists($this->rootPath . "/" . $location)) return;
-            list($isProtected, $requiredPasswords, $isAuthorized) = isAuthorized($this->rootPath, $location);
+            list($isProtected, $requiredPasswords, $savedPassword, $isAuthorized) = isAuthorized($this->rootPath, $location);
             if(!$isAuthorized || downloadForbidden($location)) return;
             $dir = opendir($location);
             while($file = readdir($dir))
@@ -55,7 +55,7 @@ function zipFileAndDownload($rootPath, $path, $forbiddenItems, $sizeLimitInMB, $
                 $isDir = filetype($filePath) == "dir";
                 if($isDir)
                 {
-                    list($isProtected, $requiredPasswords, $isAuthorized) = isAuthorized($this->rootPath, $filePath);
+                    list($isProtected, $requiredPasswords, $savedPassword, $isAuthorized) = isAuthorized($this->rootPath, $filePath);
                     if(!$isAuthorized || downloadForbidden($filePath))
                     {
                         //$this->addDir($filePath, $name . $file . "-not-authorized", false);
@@ -214,11 +214,11 @@ function isAuthorized($rootPath, $path)
     $lowerProtectedPath = getLowerProtectedPath($rootPath, $path);
     if($lowerProtectedPath === false)
     {
-        return [false, "", true];
+        return [false, "", "", true];
     }
     $requiredPasswords = explode("\n", file_get_contents($rootPath . "/" . $lowerProtectedPath . "/password"));
     $savedPassword = getPassword($lowerProtectedPath);
-    return [true, $requiredPasswords, in_array($savedPassword, $requiredPasswords)];
+    return [true, $requiredPasswords, $savedPassword, in_array($savedPassword, $requiredPasswords)];
 }
 
 
@@ -554,5 +554,40 @@ function getRealIpAddr()
     return $ip;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+function trackPasswordProtectedElement($rootPath, $path, $isAuthotirzed, $passwordProvided, $maxSizeInBytes = 50)
+{
+    if(is_dir($path)) $folder = $path;
+    else $folder = dirname($path);
+    $trackFile = $folder . "/tracking";
+    $headers = ["path", "authorized", "password", "ip", "time"];
+
+    try
+    {
+        $trackFileSize = @filesize($trackFile);
+        if($trackFileSize > $maxSizeInBytes)
+        {
+            $lines = file($trackFile);
+            $file = fopen($trackFile, "w");
+            flock($file, LOCK_EX);
+            $nbLines = count($lines);
+            $offset = intval($nbLines / 2);
+            if($offset > 0)
+            {
+                fwrite($file, implode(";", $headers) . "\n");
+                foreach(array_slice($lines, $offset, $nbLines - $offset) as $line) fwrite($file, $line);
+            }
+            fclose($file);
+        }
+        $file = fopen($trackFile, "a");
+        flock($file, LOCK_EX);
+        if($trackFileSize == false || $trackFileSize == 0) fwrite($file, implode(";", $headers) . "\n");
+        fwrite($file, implode(";", [str_replace($rootPath, "", $path), $isAuthotirzed, $passwordProvided, getRealIpAddr(), time()]) . "\n");
+    }
+    finally
+    {
+        if(isset($file)) @fclose($file);
+    }
+}
 
 ?>

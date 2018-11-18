@@ -38,11 +38,15 @@ if(isset($_GET["download"]))
 /////////////////////////////////////////////////////////////////////////////
 if(!array_key_exists("__page__", $_GET)) header("Location: " . $baseURL);
 if(isset($_POST["password-submit"])) setPassword($rootFolder, $currentPath, $_POST["password"]);
-list($isProtected, $requiredPasswords, $isAuthorized) = isAuthorized($rootFolder, $currentPath);
+list($isProtected, $requiredPasswords, $savedPassword, $isAuthorized) = isAuthorized($rootFolder, $currentPath);
 if($isAdmin) $isAuthorized = true;
 $listingAllowed = !listingForbidden($currentPath);
 $downloadAllowed = !downloadForbidden($currentPath);
 $shownAllowed = !showForbidden($currentPath);
+if($TRACKING_PASSWORD_ENABLED && $isProtected && !$isAdmin)
+{
+    trackPasswordProtectedElement($rootFolder, $currentPath, $isAuthorized, $savedPassword);
+}
 if($isAuthorized)
 {
     if(!file_exists($currentPath)) array_push($alerts, ["File not found", "The file " . $currentPage . " does not exist."]);
@@ -53,6 +57,7 @@ if($isAuthorized)
         $readmeContent = getReadme($currentPath, true);
     }
 }
+
 if(!$isAdmin && $isAuthorized && !$listingAllowed) array_push($alerts, ["Can't list folder", "You are not allowed to list this folder contents."]);
 if($isAdmin)
 {
@@ -94,15 +99,15 @@ $shownAllowed = $shownAllowed || $isAdmin;
 <div class="name"><a href="<?php echo $baseURL; ?>"><?php echo $NAME; ?></a></div>
 
 <div class="navigation section">
-    <div class="parent" data-toggle="tooltip" title="Go to parent folder"><?php if($currentPage != "/"): ?><a href="<?php echo cleanURL($baseURL . $currentPage . "/.."); ?>"><i class="icon <?php echo $PARENT_FOLDER_CLASS; ?>"></i></a><?php endif; ?></div>
-    <!--<div id="link" data-clipboard-text="<?php echo $currentURL; ?>" data-toggle="tooltip" title="copy link<?php if($isProtected) echo " (protected folder)"; ?>"><i class="icon <?php echo $LINK_FOLDER_CLASS; ?>"></i></div>-->
+    <div class="parent" data-toggle="tooltip" title="Go to parent folder"><?php if($currentPage != "/"): ?><a href="<?php echo cleanURL($baseURL . $currentPage . "/.."); ?>"><i class="icon <?php echo $PARENT_FOLDER_CLASS; ?>"></i></a><?php else: ?>.<?php endif; ?></div>
     <?php if($downloadAllowed): ?>
         <div id="download" data-toggle="tooltip" title="Download folder"><a href="<?php echo $currentURLWithoutURI . "?download" ?>"><i class="icon <?php echo $DOWNLOAD_FOLDER_CLASS; ?>"></i></a></div>
     <?php endif; ?>
     <?php if($isAdmin): ?>
         <div class="sep">|</div>
         <div data-toggle="tooltip" title="Leave admin mode"><a href="<?php echo $baseURL . "?noadmin"; ?>"><i class="icon <?php echo $NON_PROTECTED_FOLDER_CLASS; ?>"></i></a></div>
-        <div class="shares" data-toggle="tooltip" title="Shares management"><a href="<?php echo $baseURL . "shares"; ?>" target="_shares"><i class="icon <?php echo $LINK_FOLDER_CLASS; ?>"></i></a></div>
+        <?php if($SHARING_ENABLED): ?>
+            <div class="shares" data-toggle="tooltip" title="Shares management"><a href="<?php echo $baseURL . "shares"; ?>" target="_shares"><i class="icon <?php echo $LINK_FOLDER_CLASS; ?>"></i></a></div><?php endif; ?>
     <?php endif; ?>
     <div class="page"><?php echo $currentPage; ?></div>
 </div>
@@ -188,7 +193,7 @@ $shownAllowed = $shownAllowed || $isAdmin;
                         <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo $item; ?></td>
                         <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
                         <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo number_format(filesize($itemPath) / 1048576, 1); ?></td>
-                        <?php if($isAdmin): ?>
+                        <?php if($SHARING_ENABLED && $isAdmin): ?>
                             <td><a data-toggle="tooltip" title="Create share" href="<?php echo $baseURL . "create-share=" . $currentPage . "/" . $item; ?>" target="_shares"><i class="icon <?php echo $LINK_FOLDER_CLASS; ?>"></i></a></td><?php endif; ?>
                     </tr>
                     <?php $i++; ?>
