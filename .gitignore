@@ -5,6 +5,7 @@ _sf/vendors
 _sf_overrides
 _sf_shares
 composer.lock
+tracking
 
 ### demo files
 docs

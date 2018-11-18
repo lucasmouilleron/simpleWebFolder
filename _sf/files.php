@@ -82,7 +82,7 @@ $shownAllowed = $shownAllowed || $isAdmin;
     <script src="<?php echo $baseURL; ?>_sf_assets/stupidtable.js"></script>
     <script src="<?php echo $baseURL; ?>_sf_assets/clipboard.js"></script>
     <script src="<?php echo $baseURL; ?>_sf_assets/tooltipstr.js"></script>
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css">
     <link rel="stylesheet" href="<?php echo $baseURL; ?>_sf_assets/tooltipster.css">
     <link rel="stylesheet" href="<?php echo $baseURL; ?>_sf_assets/tooltipster-theme.css">
     <link rel="stylesheet" href="<?php echo $baseURL; ?>_sf_assets/style.css">
@@ -99,15 +99,19 @@ $shownAllowed = $shownAllowed || $isAdmin;
 <div class="name"><a href="<?php echo $baseURL; ?>"><?php echo $NAME; ?></a></div>
 
 <div class="navigation section">
-    <div class="parent" data-toggle="tooltip" title="Go to parent folder"><?php if($currentPage != "/"): ?><a href="<?php echo cleanURL($baseURL . $currentPage . "/.."); ?>"><i class="icon <?php echo $PARENT_FOLDER_CLASS; ?>"></i></a><?php else: ?>.<?php endif; ?></div>
+    <div class="parent" data-toggle="tooltip" title="Go to parent folder"><?php if($currentPage != "/"): ?><a href="<?php echo cleanURL($baseURL . $currentPage . "/.."); ?>"><i class="icon <?php echo $ICON_PARENT_FOLDER_CLASS; ?>"></i></a><?php else: ?>.<?php endif; ?></div>
     <?php if($downloadAllowed): ?>
-        <div id="download" data-toggle="tooltip" title="Download folder"><a href="<?php echo $currentURLWithoutURI . "?download" ?>"><i class="icon <?php echo $DOWNLOAD_FOLDER_CLASS; ?>"></i></a></div>
+        <div id="download" data-toggle="tooltip" title="Download folder"><a href="<?php echo $currentURLWithoutURI . "?download" ?>"><i class="icon <?php echo $ICON_DOWNLOAD_FOLDER_CLASS; ?>"></i></a></div>
     <?php endif; ?>
     <?php if($isAdmin): ?>
         <div class="sep">|</div>
-        <div data-toggle="tooltip" title="Leave admin mode"><a href="<?php echo $baseURL . "?noadmin"; ?>"><i class="icon <?php echo $NON_PROTECTED_FOLDER_CLASS; ?>"></i></a></div>
+        <div data-toggle="tooltip" title="Leave admin mode"><a href="<?php echo $baseURL . "?noadmin"; ?>"><i class="icon <?php echo $ICON_LEAVE_ADMIN_CLASS; ?>"></i></a></div>
         <?php if($SHARING_ENABLED): ?>
-            <div class="shares" data-toggle="tooltip" title="Shares management"><a href="<?php echo $baseURL . "shares"; ?>" target="_shares"><i class="icon <?php echo $LINK_FOLDER_CLASS; ?>"></i></a></div><?php endif; ?>
+            <div class="shares" data-toggle="tooltip" title="Shares management"><a href="<?php echo $baseURL . "shares"; ?>" target="_shares"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a></div>
+        <?php endif; ?>
+        <?php if($TRACKING_PASSWORD_ENABLED): ?>
+            <div class="tracking" data-toggle="tooltip" title="Tracking"><a href="<?php echo $baseURL . "tracking"; ?>" target="_tracking"><i class="icon <?php echo $ICON_TRACKING_CLASS; ?>"></i></a></div>
+        <?php endif; ?>
     <?php endif; ?>
     <div class="page"><?php echo $currentPage; ?></div>
 </div>
@@ -158,7 +162,7 @@ $shownAllowed = $shownAllowed || $isAdmin;
                 <?php $i = 0; ?>
                 <?php foreach($items["folders"] as $item => $itemPath): ?>
                     <tr onclick="location.href='<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>'" class="<?php if($i % 2 == 1) echo "even"; ?>">
-                        <td class="icon <?php echo $FOLDER_CLASS ?>"></td>
+                        <td class="icon <?php echo $ICON_FOLDER_CLASS ?>"></td>
                         <td><?php echo $item; ?></td>
                         <td><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
                         <td><?php echo count(scandir($itemPath)) - 2; ?></td>
@@ -194,7 +198,7 @@ $shownAllowed = $shownAllowed || $isAdmin;
                         <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
                         <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo number_format(filesize($itemPath) / 1048576, 1); ?></td>
                         <?php if($SHARING_ENABLED && $isAdmin): ?>
-                            <td><a data-toggle="tooltip" title="Create share" href="<?php echo $baseURL . "create-share=" . $currentPage . "/" . $item; ?>" target="_shares"><i class="icon <?php echo $LINK_FOLDER_CLASS; ?>"></i></a></td><?php endif; ?>
+                            <td><a data-toggle="tooltip" title="Create share" href="<?php echo $baseURL . "create-share=" . $currentPage . "/" . $item; ?>" target="_shares"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a></td><?php endif; ?>
                     </tr>
                     <?php $i++; ?>
                 <? endforeach; ?>

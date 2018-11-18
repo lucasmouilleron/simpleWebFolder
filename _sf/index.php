@@ -26,6 +26,13 @@ if($currentPage == "/shares" || startsWith($currentPage, "/share=") || startsWit
     return;
 }
 
+// tracking
+if($currentPage == "/tracking")
+{
+    include __DIR__ . "/tracking.php";
+    return;
+}
+
 // default to files
 include __DIR__ . "/files.php";
 

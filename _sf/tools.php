@@ -554,14 +554,38 @@ function getRealIpAddr()
     return $ip;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-function trackPasswordProtectedElement($rootPath, $path, $isAuthotirzed, $passwordProvided, $maxSizeInBytes = 50)
+/////////////////////////////////////////////////////////////////////////////
+function getTrackings($roothPath, $password = null, $item = null, $maxItems = null)
 {
-    if(is_dir($path)) $folder = $path;
-    else $folder = dirname($path);
-    $trackFile = $folder . "/tracking";
-    $headers = ["path", "authorized", "password", "ip", "time"];
+    $trackingFile = $roothPath . "/tracking";
+    if(!file_exists($trackingFile)) return [];
+    $trackingsRaw = file($trackingFile);
+    $trackings = [];
+    array_shift($trackingsRaw);
+    if(!isset($maxItems) || $maxItems == "all") $maxItems = count($trackingsRaw);
+    foreach($trackingsRaw as $trackingRaw)
+    {
+        $trackingRaw = str_getcsv($trackingRaw, ";");
+        $tracking = new stdClass();
+        $tracking->item = $trackingRaw[0];
+        if(isset($item) && $tracking->item != $item) continue;
+        $tracking->authorized = $trackingRaw[1];
+        $tracking->ip = $trackingRaw[3];
+        $tracking->password = $trackingRaw[2];
+        if(isset($password) && $tracking->password != $password) continue;
+        $tracking->date = $trackingRaw[4];
+        array_push($trackings, $tracking);
+    }
+    $trackings = array_reverse($trackings);
+    $trackings = array_slice($trackings, 0, $maxItems);
+    return $trackings;
+}
 
+///////////////////////////////////////////////////////////////////////////////
+function trackPasswordProtectedElement($rootPath, $path, $isAuthotirzed, $passwordProvided, $maxSizeInBytes = 3000)
+{
+    $trackFile = $rootPath . "/tracking";
+    $headers = ["path", "authorized", "password", "ip", "date"];
     try
     {
         $trackFileSize = @filesize($trackFile);
@@ -574,15 +598,16 @@ function trackPasswordProtectedElement($rootPath, $path, $isAuthotirzed, $passwo
             $offset = intval($nbLines / 2);
             if($offset > 0)
             {
-                fwrite($file, implode(";", $headers) . "\n");
+                fputcsv($file, $headers, ";");
                 foreach(array_slice($lines, $offset, $nbLines - $offset) as $line) fwrite($file, $line);
             }
             fclose($file);
         }
         $file = fopen($trackFile, "a");
         flock($file, LOCK_EX);
-        if($trackFileSize == false || $trackFileSize == 0) fwrite($file, implode(";", $headers) . "\n");
-        fwrite($file, implode(";", [str_replace($rootPath, "", $path), $isAuthotirzed, $passwordProvided, getRealIpAddr(), time()]) . "\n");
+        if($trackFileSize == false || $trackFileSize == 0) fputcsv($file, $headers, ";");
+        fputcsv($file, [str_replace($rootPath, "", $path), $isAuthotirzed ? "yes" : "no", $passwordProvided, getRealIpAddr(), time()], ";");
+
     }
     finally
     {

@@ -121,7 +121,7 @@ if($SHARING_ENABLED && $isAdmin)
     <script src="<?php echo $baseURL; ?>_sf_assets/stupidtable.js"></script>
     <script src="<?php echo $baseURL; ?>_sf_assets/clipboard.js"></script>
     <script src="<?php echo $baseURL; ?>_sf_assets/tooltipstr.js"></script>
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css">
     <link rel="stylesheet" href="<?php echo $baseURL; ?>_sf_assets/tooltipster.css">
     <link rel="stylesheet" href="<?php echo $baseURL; ?>_sf_assets/tooltipster-theme.css">
     <link rel="stylesheet" href="<?php echo $baseURL; ?>_sf_assets/style.css">
@@ -262,9 +262,9 @@ if($SHARING_ENABLED && $isAdmin)
                             <?php endif; ?>
                         </td>
                         <td>
-                            <a class="link" data-clipboard-text="<?php echo $shareURL; ?>" data-toggle="tooltip" title="Copy link"><i class="icon <?php echo $LINK_FOLDER_CLASS; ?>"></i></a>
-                            <a data-toggle="tooltip" title="Details" href="<?php echo $baseURL . "shares?share=" . $share->ID; ?>"><i class="icon <?php echo $DETAIL_CLASS; ?>"></i></a>
-                            <a data-toggle="tooltip" title="Remove" class="confirmation" href="<?php echo $baseURL . "remove-share=" . $share->ID; ?>"><i class="icon <?php echo $DELETE_CLASS; ?>"></i></a>
+                            <a class="link" data-clipboard-text="<?php echo $shareURL; ?>" data-toggle="tooltip" title="Copy link"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
+                            <a data-toggle="tooltip" title="Details" href="<?php echo $baseURL . "shares?share=" . $share->ID; ?>"><i class="icon <?php echo $ICON_DETAIL_CLASS; ?>"></i></a>
+                            <a data-toggle="tooltip" title="Remove" class="confirmation" href="<?php echo $baseURL . "remove-share=" . $share->ID; ?>"><i class="icon <?php echo $ICON_DELETE_CLASS; ?>"></i></a>
                         </td>
                     </tr>
                     <?php $i++; ?>

@@ -47,13 +47,7 @@ a:hover {
     border-bottom: 3px solid #ccc;
 }
 
-.authenticate {
-    background-color: #eee;
-    padding: 15px 25px;
-    border-bottom: 3px solid #ccc;
-}
-
-.create-share {
+.authenticate, .create-share, .trackings-filter {
     background-color: #eee;
     padding: 15px 25px;
     border-bottom: 3px solid #ccc;
@@ -113,7 +107,7 @@ tr:hover {
 }
 
 .navigation > div {
-    color:#aaa;
+    color: #aaa;
     font-size: 1.5em;
     float: left;
     margin-right: 8px;
@@ -214,20 +208,28 @@ input[type=submit]:hover {
     opacity: 1;
 }
 
+label {
+    margin:0 15px;
+}
+
+form.inline input {
+    display: inline;
+}
+
 .footer {
-    margin-top:40px;
-    border-top:3px solid #ddd;
-    padding:20px 0 0 0;
+    margin-top: 40px;
+    border-top: 3px solid #ddd;
+    padding: 20px 0 0 0;
     text-align: center;
-    color:#d0d0d0;
+    color: #d0d0d0;
 }
 
 .logo {
     background: url("logo.png");
-    width:100px;
-    height:100px;
+    width: 100px;
+    height: 100px;
     background-size: cover;
     /*margin:0 auto;*/
-    margin:0 0 30px 0;
-    display:block;
+    margin: 0 0 30px 0;
+    display: block;
 }
