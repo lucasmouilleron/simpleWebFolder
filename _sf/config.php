@@ -3,7 +3,7 @@
 $NAME = "simpleWebFolder";
 $CREDITS = "Lucas Mouilleron";
 $ADMIN_PASSWORD = "changeme";
-$FORBIDEN_ITEMS = array(".", "..", "_sf", "_sf_assets", "_sf_overrides", "_sf_shares", "tracking","password", "nopassword", "nolist", "noshow", "nodownload", ".DS_Store", "Icon\r", ".htaccess", "README.md");
+$FORBIDEN_ITEMS = array(".", "..", "_sf", "_sf_assets", "_sf_overrides", "_sf_shares", ".tracking",".password", ".nopassword", ".nolist", ".noshow", ".nodownload", ".DS_Store", "Icon\r", ".htaccess", "README.md");
 $TIMEZONE = "Europe/Paris";
 $TMP_FOLDER = "/tmp";
 $MAX_ZIP_SIZE_IN_MB = 50;

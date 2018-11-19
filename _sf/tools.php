@@ -192,20 +192,20 @@ function cleanPathForCookie($path)
 ///////////////////////////////////////////////////////////////////////////////
 function listingForbidden($path)
 {
-    return file_exists($path . "/nolist");
+    return file_exists($path . "/.nolist");
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
 function showForbidden($path)
 {
-    return file_exists($path . "/noshow");
+    return file_exists($path . "/.noshow");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 function downloadForbidden($path)
 {
-    return file_exists($path . "/nodownload") || showForbidden($path) || listingForbidden($path);
+    return file_exists($path . "/.nodownload") || showForbidden($path) || listingForbidden($path);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -216,7 +216,7 @@ function isAuthorized($rootPath, $path)
     {
         return [false, "", "", true];
     }
-    $requiredPasswords = explode("\n", file_get_contents($rootPath . "/" . $lowerProtectedPath . "/password"));
+    $requiredPasswords = explode("\n", file_get_contents($rootPath . "/" . $lowerProtectedPath . "/.password"));
     $savedPassword = getPassword($lowerProtectedPath);
     return [true, $requiredPasswords, $savedPassword, in_array($savedPassword, $requiredPasswords)];
 }
@@ -236,12 +236,12 @@ function getLowerProtectedPath($rootPath, $path)
             $currentPath = "/";
         }
         $currentRealPath = realpath($rootPath . "/" . $currentPath);
-        if(file_exists($currentRealPath . "/password"))
+        if(file_exists($currentRealPath . "/.password"))
         {
             $lowerPath = $currentRealPath;
             break;
         }
-        if(file_exists($currentRealPath . "/nopassword"))
+        if(file_exists($currentRealPath . "/.nopassword"))
         {
             $lowerPath = false;
             break;
@@ -557,7 +557,7 @@ function getRealIpAddr()
 /////////////////////////////////////////////////////////////////////////////
 function getTrackings($roothPath, $password = null, $item = null, $maxItems = null)
 {
-    $trackingFile = $roothPath . "/tracking";
+    $trackingFile = $roothPath . "/.tracking";
     if(!file_exists($trackingFile)) return [];
     $trackingsRaw = file($trackingFile);
     $trackings = [];
@@ -584,7 +584,7 @@ function getTrackings($roothPath, $password = null, $item = null, $maxItems = nu
 ///////////////////////////////////////////////////////////////////////////////
 function trackPasswordProtectedElement($rootPath, $path, $isAuthotirzed, $passwordProvided, $maxSizeInBytes = 3000)
 {
-    $trackFile = $rootPath . "/tracking";
+    $trackFile = $rootPath . "/.tracking";
     $headers = ["path", "authorized", "password", "ip", "date"];
     try
     {
