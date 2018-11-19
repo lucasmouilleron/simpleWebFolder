@@ -37,17 +37,13 @@ if(isset($_GET["download"]))
 /////////////////////////////////////////////////////////////////////////////
 /// FILES AND FOLDERS
 /////////////////////////////////////////////////////////////////////////////
-if(!array_key_exists("__page__", $_GET)) header("Location: " . $baseURL);
 if(isset($_POST["password-submit"])) setPassword($rootFolder, $currentPath, $_POST["password"]);
 list($isProtected, $requiredPasswords, $savedPassword, $isAuthorized) = isAuthorized($rootFolder, $currentPath);
 if($isAdmin) $isAuthorized = true;
 $listingAllowed = !listingForbidden($currentPath);
 $downloadAllowed = !downloadForbidden($currentPath);
 $shownAllowed = !showForbidden($currentPath);
-if($TRACKING_PASSWORD_ENABLED && $isProtected && !$isAdmin)
-{
-    trackPasswordProtectedElement($rootFolder, $currentPath, $isAuthorized, $savedPassword);
-}
+if($TRACKING_PASSWORD_ENABLED && $isProtected && !$isAdmin) trackPasswordProtectedElement($rootFolder, $currentPath, $isAuthorized, $savedPassword);
 if($isAuthorized)
 {
     if(!file_exists($currentPath)) array_push($alerts, ["File not found", "The file " . $currentPage . " does not exist."]);

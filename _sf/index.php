@@ -18,9 +18,9 @@ $currentPage = getCurrentPage($rootFolder, $baseURL);
 /////////////////////////////////////////////////////////////////////////////
 /// ROUTING
 /////////////////////////////////////////////////////////////////////////////
+if(!array_key_exists("__page__", $_GET)) header("Location: " . $baseURL);
 
 // shares management
-
 if($currentPage == "/shares" || startsWith($currentPage, "/create-share=") || startsWith($currentPage, "/remove-share="))
 {
     include __DIR__ . "/shares.php";
@@ -28,7 +28,8 @@ if($currentPage == "/shares" || startsWith($currentPage, "/create-share=") || st
 }
 
 // share
-if (startsWith($currentPage, "/share=")) {
+if(startsWith($currentPage, "/share="))
+{
     include __DIR__ . "/share.php";
     return;
 }

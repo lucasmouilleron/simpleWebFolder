@@ -15,7 +15,7 @@ $sharesFolder = $rootFolder . "/_sf_shares";
 $shareID = null;
 $isUserAuthorized = false;
 $wantAdmin = false;
-$relativePath = "";
+$shareSubFile = "";
 $readmeContent = "";
 $currentPage = getCurrentPage($rootFolder, $baseURL);
 
@@ -44,19 +44,21 @@ if($SHARING_ENABLED)
     if(count($matches) == 2)
     {
         $shareID = $matches[1];
-        $relativePath = str_replace("/share=" . $shareID, "", $currentPage);
-        $shareURL = $baseURL . "share=" . $shareID . "/";
+        $shareSubFile = str_replace("/share=" . $shareID, "", $currentPage);
+        $shareURL = cleanURL($baseURL . "share=" . $shareID);
+        $shareURLWithSubFile = cleanURL($shareURL . $shareSubFile);
+
     }
     if(isset($_POST["password-submit"]) && isset($shareID)) setPasswordShare($shareID, $_POST["password"]);
     if(isset($shareID) && (!$wantAdmin || $isAdmin))
     {
         if($isAdmin) list($share, $success, $hint, $isUserAuthorized) = [getShare($sharesFolder, $shareID), true, "none", true];
-        else list($success, $hint, $isUserAuthorized, $share) = getShareAsUser($rootFolder, $sharesFolder, $shareID, $relativePath);
+        else list($success, $hint, $isUserAuthorized, $share) = getShareAsUser($rootFolder, $sharesFolder, $shareID, $shareSubFile);
         if($success)
         {
             $shareFileOrFolder = $rootFolder . $share->file;
-            if($relativePath != "") $shareFileOrFolder = $shareFileOrFolder . $relativePath;
-            if(!file_exists($shareFileOrFolder)) array_push($alerts, ["File not found", "The file " . $share->file . $relativePath . " does not exist."]);
+            if($shareSubFile != "") $shareFileOrFolder = $shareFileOrFolder . $shareSubFile;
+            if(!file_exists($shareFileOrFolder)) array_push($alerts, ["File not found", "The file " . $share->file . $shareSubFile . " does not exist."]);
             elseif(is_file($shareFileOrFolder))
             {
                 if(!displayFile($shareFileOrFolder, $FORBIDEN_ITEMS)) array_push($alerts, ["File not found", "The file " . $shareFileOrFolder . " does not exist."]);
@@ -99,7 +101,7 @@ if($SHARING_ENABLED)
 <div class="name"><a href="<?php echo $shareURL; ?>"><?php echo $NAME; ?></a></div>
 
 <div class="navigation section">
-    <div class="parent" data-toggle="tooltip" title="Go to parent folder"><?php if($relativePath != ""): ?><a href="<?php echo cleanURL($baseURL . $currentPage . "/.."); ?>"><i class="icon <?php echo $ICON_PARENT_FOLDER_CLASS; ?>"></i></a><?php else: ?>.<?php endif; ?></div>
+    <div class="parent" data-toggle="tooltip" title="Go to parent folder"><?php if($shareSubFile != ""): ?><a href="<?php echo cleanURL($baseURL . $currentPage . "/.."); ?>"><i class="icon <?php echo $ICON_PARENT_FOLDER_CLASS; ?>"></i></a><?php else: ?>.<?php endif; ?></div>
     <?php if($isAdmin): ?>
         <div class="sep">|</div>
         <div data-toggle="tooltip" title="Leave admin mode"><a href="<?php echo $baseURL . "?noadmin"; ?>"><i class="icon <?php echo $ICON_LEAVE_ADMIN_CLASS; ?>"></i></a></div>
@@ -146,7 +148,7 @@ if($SHARING_ENABLED)
             <tbody>
             <tr>
                 <td><?php echo $share->ID; ?></td>
-                <td><a href="<?php echo $rootURL . $baseURL . "share=" . $share->ID; ?>" target="_share_<?php echo $share->ID; ?>"><?php echo $rootURL . $baseURL . "share=" . $share->ID; ?></a></td>
+                <td><a href="<?php echo cleanURL($rootURL . $baseURL . "share=" . $share->ID); ?>" target="_share_<?php echo $share->ID; ?>"><?php echo $rootURL . $baseURL . "share=" . $share->ID; ?></a></td>
                 <td><a href="<?php echo $rootURL . $baseURL . $share->file; ?>" target="_files"><?php echo $share->file; ?></a></td>
                 <td><?php echo count($share->views); ?></td>
             </tr>
@@ -218,7 +220,7 @@ if($SHARING_ENABLED)
                 <tbody>
                 <?php $i = 0; ?>
                 <?php foreach($items["folders"] as $item => $itemPath): ?>
-                    <tr onclick="location.href='<?php echo cleanURL($shareURL . $relativePath . "/" . $item); ?>'" class="<?php if($i % 2 == 1) echo "even"; ?>">
+                    <tr onclick="location.href='<?php echo cleanURL($shareURLWithSubFile . "/" . $item); ?>'" class="<?php if($i % 2 == 1) echo "even"; ?>">
                         <td class="icon <?php echo $ICON_FOLDER_CLASS ?>"></td>
                         <td><?php echo $item; ?></td>
                         <td><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
@@ -246,11 +248,12 @@ if($SHARING_ENABLED)
                 <tbody>
                 <?php $i = 0; ?>
                 <?php foreach($items["files"] as $item => $itemPath): ?>
+                    <?php $itemURL = cleanURL($shareURLWithSubFile . "/" . $item); ?>
                     <tr class="<?php if($i % 2 == 1) echo "even"; ?>">
-                        <td onclick="window.open('<?php echo cleanURL($shareURL . $relativePath . "/" . $item); ?>')" class="icon <?php echo getFileExtensionClass($itemPath, $EXTENSIONS_CLASSES) ?>"></td>
-                        <td onclick="window.open('<?php echo cleanURL($shareURL . $relativePath . "/" . $item); ?>')"><?php echo $item; ?></td>
-                        <td onclick="window.open('<?php echo cleanURL($shareURL . $relativePath . "/" . $item); ?>')"><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
-                        <td onclick="window.open('<?php echo cleanURL($shareURL . $relativePath . "/" . $item); ?>')"><?php echo number_format(filesize($itemPath) / 1048576, 1); ?></td>
+                        <td onclick="window.open('<?php echo $itemURL; ?>')" class="icon <?php echo getFileExtensionClass($itemPath, $EXTENSIONS_CLASSES) ?>"></td>
+                        <td onclick="window.open('<?php echo $itemURL; ?>')"><?php echo $item; ?></td>
+                        <td onclick="window.open('<?php echo $itemURL; ?>')"><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
+                        <td onclick="window.open('<?php echo $itemURL; ?>')"><?php echo number_format(filesize($itemPath) / 1048576, 1); ?></td>
                     </tr>
                     <?php $i++; ?>
                 <? endforeach; ?>

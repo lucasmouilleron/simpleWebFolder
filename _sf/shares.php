@@ -48,8 +48,8 @@ if($SHARING_ENABLED && $isAdmin && startsWith($currentPage, "/create-share="))
         if(!isset($_POST["shareID"])) array_push($alerts, ["Can't create share", "No share ID provided."]);
         else
         {
-            $shareID = $_POST["shareID"];
             $shareDuration = floatval($_POST["duration"]);
+            $shareID = $_POST["shareID"];
             if($shareID == "") $shareID = $_POST["defaultShareID"];
             $shareID = clean($shareID);
             if($shareID == "") array_push($alerts, ["Can't create share", "Share ID provided is invalid."]);
@@ -81,8 +81,11 @@ if($SHARING_ENABLED && $isAdmin && startsWith($currentPage, "/remove-share="))
 {
     $shareID = str_replace("/remove-share=", "", $currentPage);
     if($shareID == "") array_push($alerts, ["Can't remove share", "Share ID provided is invalid"]);
-    removeShare($sharesFolder, $shareID);
-    array_push($alerts, ["Share removed", "Share " . $shareID . " has been removed and is no longer available."]);
+    else
+    {
+        removeShare($sharesFolder, $shareID);
+        array_push($alerts, ["Share removed", "Share " . $shareID . " has been removed and is no longer available."]);
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -158,7 +161,7 @@ if($SHARING_ENABLED && $isAdmin)
         <div class="create-share section">
             <div class="section-title">Create share</div>
             <?php if($addShareIsDir): ?>
-                <div>Warning: You are creating a share on a folder. All sub files and folders of <i><?php echo $addShareFile;?></i> will be accessible from this share.</div>
+                <div>Warning: You are creating a share on a folder. All sub files and folders of <i><?php echo $addShareFile; ?></i> will be accessible from this share.</div>
             <?php endif; ?>
             <form method="post">
                 <input readonly type="text" placeholder="<?php echo $addShareFile; ?>"/>
@@ -192,7 +195,7 @@ if($SHARING_ENABLED && $isAdmin)
                     <?php $shareURL = $rootURL . $baseURL . "share=" . $share->ID; ?>
                     <tr class="<?php if($i % 2 == 1) echo "even"; ?>">
                         <td><?php echo $share->ID; ?></td>
-                        <td onclick="window.open('<?php echo $rootURL . $baseURL . $share->file; ?>')"><a><?php echo $share->file; ?></a></td>
+                        <td onclick="window.open('<?php echo cleanURL($rootURL . $baseURL . $share->file); ?>')"><a><?php echo $share->file; ?></a></td>
                         <td><?php echo getShareExpirationString($share) ?></td>
                         <td><?php echo $share->password; ?></td>
                         <td><?php echo count($share->views); ?></td>
@@ -203,8 +206,8 @@ if($SHARING_ENABLED && $isAdmin)
                         </td>
                         <td>
                             <a class="link" data-clipboard-text="<?php echo $shareURL; ?>" data-toggle="tooltip" title="Copy link"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
-                            <a data-toggle="tooltip" title="Details" href="<?php echo $baseURL . "share=" . $share->ID; ?>" target="_share_<?php echo $share->ID; ?>"><i class="icon <?php echo $ICON_DETAIL_CLASS; ?>"></i></a>
-                            <a data-toggle="tooltip" title="Remove" class="confirmation" href="<?php echo $baseURL . "remove-share=" . $share->ID; ?>"><i class="icon <?php echo $ICON_DELETE_CLASS; ?>"></i></a>
+                            <a data-toggle="tooltip" title="Details" href="<?php echo $shareURL; ?>" target="_share_<?php echo $share->ID; ?>"><i class="icon <?php echo $ICON_DETAIL_CLASS; ?>"></i></a>
+                            <a data-toggle="tooltip" title="Remove" class="confirmation" href="<?php echo cleanURL($baseURL . "remove-share=" . $share->ID); ?>"><i class="icon <?php echo $ICON_DELETE_CLASS; ?>"></i></a>
                         </td>
                     </tr>
                     <?php $i++; ?>
