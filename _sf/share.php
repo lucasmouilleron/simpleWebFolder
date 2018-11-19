@@ -146,7 +146,7 @@ if($SHARING_ENABLED)
             <tbody>
             <tr>
                 <td><?php echo $share->ID; ?></td>
-                <td><a href="<?php echo $rootURL . $baseURL . "share=" . $share->ID; ?>" target="_<?php echo $share->ID; ?>"><?php echo $rootURL . $baseURL . "share=" . $share->ID; ?></a></td>
+                <td><a href="<?php echo $rootURL . $baseURL . "share=" . $share->ID; ?>" target="_share_<?php echo $share->ID; ?>"><?php echo $rootURL . $baseURL . "share=" . $share->ID; ?></a></td>
                 <td><a href="<?php echo $rootURL . $baseURL . $share->file; ?>" target="_files"><?php echo $share->file; ?></a></td>
                 <td><?php echo count($share->views); ?></td>
             </tr>
