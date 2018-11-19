@@ -158,7 +158,7 @@ if($SHARING_ENABLED && $isAdmin)
         <div class="create-share section">
             <div class="section-title">Create share</div>
             <?php if($addShareIsDir): ?>
-                <div>Warning: You are creating a share on a folder. All sub files and folders of <i><?php echo $addShareFile;?></i> will ne accessible from this share.</div>
+                <div>Warning: You are creating a share on a folder. All sub files and folders of <i><?php echo $addShareFile;?></i> will be accessible from this share.</div>
             <?php endif; ?>
             <form method="post">
                 <input readonly type="text" placeholder="<?php echo $addShareFile; ?>"/>

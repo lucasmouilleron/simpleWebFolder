@@ -31,7 +31,8 @@ a:hover {
 
 .section-title {
     font-size: 1.4em;
-    margin: 0 0 5px 0;
+    margin: 10px 0 10px 0;
+    font-weight: bold;
 }
 
 .alert {
@@ -143,7 +144,7 @@ tr:hover {
 
 h1, h2, h3 {
     font-weight: bold;
-    margin-top: 20px;
+    margin-top: 10px;
     margin-bottom: 10px;
 }
 

@@ -18,6 +18,7 @@ $items = [];
 /////////////////////////////////////////////////////////////////////////////
 /// ADMIN
 /////////////////////////////////////////////////////////////////////////////
+if($currentPage == "/admin") header("Location: ".$baseURL."?admin");
 if(isset($_GET["noadmin"])) setAdminPassword("--delog");
 if(isset($_POST["admin-password-submit"])) setAdminPassword($_POST["password"]);
 $isAdmin = getAdminPassword() == $ADMIN_PASSWORD;
@@ -59,7 +60,7 @@ if($isAuthorized)
         else
         {
             $items = scanFolder($currentPath, $FORBIDEN_ITEMS, $isAdmin);
-            $readmeContent = getReadme($currentPath, true);
+            $readmeContent = getReadme($currentPath, false);
         }
     }
 }

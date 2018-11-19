@@ -298,7 +298,7 @@ function get(&$var, $default = null)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-function getReadme($folderPath, $offsetHeaders)
+function getReadme($folderPath, $offsetHeaders=false)
 {
     $readmeContent = "";
     $file = $folderPath . "/README.md";

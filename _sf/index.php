@@ -23,7 +23,6 @@ $currentPage = getCurrentPage($rootFolder, $baseURL);
 
 if($currentPage == "/shares" || startsWith($currentPage, "/create-share=") || startsWith($currentPage, "/remove-share="))
 {
-
     include __DIR__ . "/shares.php";
     return;
 }
@@ -42,7 +41,5 @@ if($currentPage == "/tracking")
 }
 
 // default to files
-//print("hre");
-//return;
 include __DIR__ . "/files.php";
 
