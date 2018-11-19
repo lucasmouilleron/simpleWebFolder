@@ -64,6 +64,19 @@ if(isset($_POST["filter"]))
 
 <div class="name"><a href="<?php echo $rootURL . $baseURL . "tracking"; ?>"><?php echo $NAME; ?></a></div>
 
+<div class="navigation section">
+    <?php if($isAdmin): ?>
+        <div data-toggle="tooltip" title="Leave admin mode"><a href="<?php echo $baseURL . "?noadmin"; ?>"><i class="icon <?php echo $ICON_LEAVE_ADMIN_CLASS; ?>"></i></a></div>
+        <div class="files" data-toggle="tooltip" title="Files"><a href="<?php echo $baseURL; ?>" target="_files"><i class="icon <?php echo $ICON_CURRENT_FOLDER_CLASS; ?>"></i></a></div>
+        <?php if($SHARING_ENABLED): ?>
+            <div class="shares" data-toggle="tooltip" title="Shares management"><a href="<?php echo $baseURL . "shares"; ?>" target="_shares"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a></div>
+        <?php endif; ?>
+        <?php if($TRACKING_PASSWORD_ENABLED): ?>
+            <div class="tracking" data-toggle="tooltip" title="Tracking"><a href="<?php echo $baseURL . "tracking"; ?>" target="_tracking"><i class="icon <?php echo $ICON_TRACKING_CLASS; ?>"></i></a></div>
+        <?php endif; ?>
+    <?php endif; ?>
+</div>
+
 
 <?php foreach($alerts as $alert): ?>
     <div class="alert">

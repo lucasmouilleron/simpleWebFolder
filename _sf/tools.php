@@ -28,10 +28,7 @@ function zipFileAndDownload($rootPath, $path, $forbiddenItems, $sizeLimitInMB, $
         public function addDir($location, $name, $do = true)
         {
             $this->addEmptyDir($name);
-            if($do)
-            {
-                $this->addDirDo($location, $name);
-            }
+            if($do) $this->addDirDo($location, $name);
         }
 
         public function maxSizeReached()
@@ -82,21 +79,12 @@ function zipFileAndDownload($rootPath, $path, $forbiddenItems, $sizeLimitInMB, $
     {
         if(!file_exists($path)) throw new Exception("Target does not exist");
         @mkdir($zipFolder);
-        if(!is_dir($zipFolder))
-        {
-            throw new Exception("Can't write zip file");
-        }
+        if(!is_dir($zipFolder)) throw new Exception("Can't write zip file");
         $za = new FlxZipArchive($rootPath, $forbiddenItems, $sizeLimitInMB * 1e6);
         $res = $za->open($zipFile, ZipArchive::CREATE);
-        if($res !== true)
-        {
-            throw new Exception("Can't write zip file");
-        }
+        if($res !== true) throw new Exception("Can't write zip file");
         $za->addDir($path, $folderName);
-        if($za->maxSizeReached())
-        {
-            throw new Exception("Max size of " . $sizeLimitInMB . "MB reached");
-        }
+        if($za->maxSizeReached()) throw new Exception("Max size of " . $sizeLimitInMB . "MB reached");
         $za->close();
         header("Content-Description: File Transfer");
         header("Content-Type: application/octet-stream");
@@ -126,25 +114,16 @@ function zipFileAndDownload($rootPath, $path, $forbiddenItems, $sizeLimitInMB, $
 ///////////////////////////////////////////////////////////////////////////////
 function setAdminPassword($password)
 {
-    setcookie("admin-password", $password, 0);
+    setcookie("admin-password", $password, 0, "/");
     $GLOBALS["admin-password"] = $password;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 function getAdminPassword()
 {
-    if(isset($GLOBALS["admin-password"]))
-    {
-        return $GLOBALS["admin-password"];
-    }
-    else if(isset($_COOKIE["admin-password"]))
-    {
-        return $_COOKIE["admin-password"];
-    }
-    else
-    {
-        return "";
-    }
+    if(isset($GLOBALS["admin-password"])) return $GLOBALS["admin-password"];
+    else if(isset($_COOKIE["admin-password"])) return $_COOKIE["admin-password"];
+    else return "";
 }
 
 
@@ -155,7 +134,7 @@ function setPassword($rootPath, $path, $password)
     if($lowerProtectedPath !== false)
     {
         $lowerProtectedPath = cleanPathForCookie($lowerProtectedPath);
-        setcookie($lowerProtectedPath, $password, 0);
+        setcookie($lowerProtectedPath, $password, 0, "/");
         $GLOBALS["password-" . $lowerProtectedPath] = $password;
     }
 }
@@ -164,28 +143,16 @@ function setPassword($rootPath, $path, $password)
 function getPassword($lowerProtectedPath)
 {
     $lowerProtectedPath = cleanPathForCookie($lowerProtectedPath);
-    if(isset($GLOBALS["password-" . $lowerProtectedPath]))
-    {
-        return $GLOBALS["password-" . $lowerProtectedPath];
-    }
-    else if(isset($_COOKIE[$lowerProtectedPath]))
-    {
-        return $_COOKIE[$lowerProtectedPath];
-    }
-    else
-    {
-        return null;
-    }
+    if(isset($GLOBALS["password-" . $lowerProtectedPath])) return $GLOBALS["password-" . $lowerProtectedPath];
+    else if(isset($_COOKIE[$lowerProtectedPath])) return $_COOKIE[$lowerProtectedPath];
+    else return null;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 function cleanPathForCookie($path)
 {
     $path = clean($path);
-    if($path == "")
-    {
-        $path = "-";
-    }
+    if($path == "") $path = "-";
     return $path;
 }
 
@@ -212,10 +179,7 @@ function downloadForbidden($path)
 function isAuthorized($rootPath, $path)
 {
     $lowerProtectedPath = getLowerProtectedPath($rootPath, $path);
-    if($lowerProtectedPath === false)
-    {
-        return [false, "", "", true];
-    }
+    if($lowerProtectedPath === false) return [false, "", "", true];
     $requiredPasswords = explode("\n", file_get_contents($rootPath . "/" . $lowerProtectedPath . "/.password"));
     $savedPassword = getPassword($lowerProtectedPath);
     return [true, $requiredPasswords, $savedPassword, in_array($savedPassword, $requiredPasswords)];
@@ -231,10 +195,7 @@ function getLowerProtectedPath($rootPath, $path)
     for($i = 0; $i < count($paths); $i++)
     {
         $currentPath = implode("/", array_slice($paths, 0, count($paths) - $i));
-        if($currentPath == "")
-        {
-            $currentPath = "/";
-        }
+        if($currentPath == "") $currentPath = "/";
         $currentRealPath = realpath($rootPath . "/" . $currentPath);
         if(file_exists($currentRealPath . "/.password"))
         {
@@ -247,10 +208,7 @@ function getLowerProtectedPath($rootPath, $path)
             break;
         }
     }
-    if($lowerPath === false)
-    {
-        return false;
-    }
+    if($lowerPath === false) return false;
     return str_replace($rootPath, "", $lowerPath);
 }
 
@@ -258,16 +216,10 @@ function getLowerProtectedPath($rootPath, $path)
 function getCurrentPage($rootFolder, $baseURL)
 {
     $currentPage = get($_GET["__page__"], "/");
-    if(strContains($rootFolder, $currentPage))
-    {
-        header("Location: " . $baseURL . "/");
-    }
+    if(strContains($rootFolder, $currentPage)) header("Location: " . $baseURL . "/");
     $currentPage .= "/";
     $currentPage = rtrim($currentPage, "/");
-    if($currentPage == "")
-    {
-        $currentPage = "/";
-    }
+    if($currentPage == "") $currentPage = "/";
     return $currentPage;
 }
 
@@ -360,8 +312,9 @@ function getReadme($folderPath, $offsetHeaders)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-function displayFile($filePath)
+function displayFile($filePath, $forbiddenItems)
 {
+    if(in_array(basename($filePath), $forbiddenItems)) return false;
     $fp = fopen($filePath, "rb");
     // header("Content-Description: File Transfer");
     // header("Content-Type: application/octet-stream");
@@ -488,50 +441,54 @@ function removeShare($sharesFolder, $shareID)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-function getShareAndDownload($rootPath, $sharesFolder, $shareID, $password)
+function getShareAsUser($rootPath, $sharesFolder, $shareID, $subPath = null, $maxViews = 500)
 {
     try
     {
         $share = getShare($sharesFolder, $shareID);
-        if($share == null) return [false, "share does not exist", false];
-        $file = $rootPath . "/" . $share->file;
-        if(!file_exists($file)) return [false, "share does not exist", false];
+        if($share == null) return [false, "share does not exist", true, null];
+        if(!file_exists($rootPath . "/" . $share->file)) return [false, "share does not exist anymore", true, null];
         if($share->duration == "") $share->duration = 0;
-        if($share->duration > 0 && time() - $share->creation > $share->duration) return [false, "share has expired", false];
+        if($share->duration > 0 && time() - $share->creation > $share->duration) return [false, "share has expired", true, null];
         $view = new stdClass();
         $view->ip = getRealIpAddr();
         $view->date = time();
+        $viewFile = $share->file;
+        if(isset($subPath)) $viewFile = $viewFile . $subPath;
+        $view->item = $viewFile;
         array_push($share->views, $view);
+        if(count($share->views) > $maxViews) array_shift($share->views);
         saveShare($sharesFolder, $shareID, $share);
-        if(isShareAuthorized($share, $password))
-        {
-            displayFile($file);
-            return [true, "OK", false];
-        }
-        else
-        {
-            return [false, "Password is required", true];
-        }
+        if(isShareAuthorized($share)) return [true, "OK", true, $share];
+        else return [false, "Password is required", false, null];
     }
     catch(Exception $e)
     {
-        return [false, $e, false];
+        return [false, $e, true, null];
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-function isShareAuthorized($share, $password)
+function isShareAuthorized($share)
 {
     if($share->password == null || $share->password == "") return true;
-    return $share->password == $password;
+    return $share->password == getPasswordShare($share->ID);
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
 function setPasswordShare($shareID, $password)
 {
-    setcookie($shareID, $password, 0);
+    setcookie($shareID, $password, 0, "/");
     $GLOBALS["password-share-" . $shareID] = $password;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+function getPasswordShare($shareID)
+{
+    if(isset($GLOBALS["password-share-" . $shareID])) return $GLOBALS["password-share-" . $shareID];
+    else if(isset($_COOKIE[$shareID])) return $_COOKIE[$shareID];
+    else return null;
 }
 
 
@@ -568,11 +525,11 @@ function getTrackings($roothPath, $password = null, $item = null, $maxItems = nu
         $trackingRaw = str_getcsv($trackingRaw, ";");
         $tracking = new stdClass();
         $tracking->item = $trackingRaw[0];
-        if(isset($item) && $tracking->item != $item) continue;
+        if(isset($item) && !strContains($item, $tracking->item)) continue;
         $tracking->authorized = $trackingRaw[1];
         $tracking->ip = $trackingRaw[3];
         $tracking->password = $trackingRaw[2];
-        if(isset($password) && $tracking->password != $password) continue;
+        if(isset($password) && !strContains($password, $tracking->password)) continue;
         $tracking->date = $trackingRaw[4];
         array_push($trackings, $tracking);
     }

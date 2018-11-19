@@ -50,11 +50,17 @@ if($TRACKING_PASSWORD_ENABLED && $isProtected && !$isAdmin)
 if($isAuthorized)
 {
     if(!file_exists($currentPath)) array_push($alerts, ["File not found", "The file " . $currentPage . " does not exist."]);
-    if(file_exists($currentPath))
+    else
     {
-        if(is_file($currentPath)) displayFile($currentPath);
-        $items = scanFolder($currentPath, $FORBIDEN_ITEMS, $isAdmin);
-        $readmeContent = getReadme($currentPath, true);
+        if(is_file($currentPath))
+        {
+            if(!displayFile($currentPath, $FORBIDEN_ITEMS)) array_push($alerts, ["File not found", "The file " . $currentPage . " does not exist."]);
+        }
+        else
+        {
+            $items = scanFolder($currentPath, $FORBIDEN_ITEMS, $isAdmin);
+            $readmeContent = getReadme($currentPath, true);
+        }
     }
 }
 
@@ -156,16 +162,28 @@ $shownAllowed = $shownAllowed || $isAdmin;
                     <th data-sort="string-ins">Name</th>
                     <th data-sort="string-ins" style="width:20%;">Last modified</th>
                     <th data-sort="int" style="width:10%;"># items</th>
+                    <?php if($isAdmin): ?>
+                        <th width="70">Actions</th>
+                    <?php endif; ?>
                 </tr>
                 </thead>
                 <tbody>
                 <?php $i = 0; ?>
                 <?php foreach($items["folders"] as $item => $itemPath): ?>
-                    <tr onclick="location.href='<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>'" class="<?php if($i % 2 == 1) echo "even"; ?>">
-                        <td class="icon <?php echo $ICON_FOLDER_CLASS ?>"></td>
-                        <td><?php echo $item; ?></td>
-                        <td><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
-                        <td><?php echo count(scandir($itemPath)) - 2; ?></td>
+                    <?php $folderURL = cleanURL($baseURL . $currentPage . "/" . $item); ?>
+                    <?php $shareURL = cleanURL($baseURL . "create-share=" . $currentPage . "/" . $item); ?>
+                    <tr class="<?php if($i % 2 == 1) echo "even"; ?>">
+                        <td onclick="location.href='<?php echo $folderURL; ?>'" class="icon <?php echo $ICON_FOLDER_CLASS ?>"></td>
+                        <td onclick="location.href='<?php echo $folderURL; ?>'"><?php echo $item; ?></td>
+                        <td onclick="location.href='<?php echo $folderURL; ?>'"><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
+                        <td onclick="location.href='<?php echo $folderURL; ?>'"><?php echo count(scandir($itemPath)) - 2; ?></td>
+                        <?php if($isAdmin): ?>
+                            <td>
+                                <?php if($SHARING_ENABLED): ?>
+                                    <a data-toggle="tooltip" title="Create share" href="<?php echo $shareURL; ?>" target="_shares"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
+                                <?php endif; ?>
+                            </td>
+                        <?php endif; ?>
                     </tr>
                     <?php $i++; ?>
                 <? endforeach; ?>
@@ -197,8 +215,13 @@ $shownAllowed = $shownAllowed || $isAdmin;
                         <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo $item; ?></td>
                         <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
                         <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo number_format(filesize($itemPath) / 1048576, 1); ?></td>
-                        <?php if($SHARING_ENABLED && $isAdmin): ?>
-                            <td><a data-toggle="tooltip" title="Create share" href="<?php echo $baseURL . "create-share=" . $currentPage . "/" . $item; ?>" target="_shares"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a></td><?php endif; ?>
+                        <?php if($isAdmin): ?>
+                            <td>
+                                <?php if($SHARING_ENABLED): ?>
+                                    <a data-toggle="tooltip" title="Create share" href="<?php echo $baseURL . "create-share=" . $currentPage . "/" . $item; ?>" target="_shares"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
+                                <?php endif; ?>
+                            </td>
+                        <?php endif; ?>
                     </tr>
                     <?php $i++; ?>
                 <? endforeach; ?>

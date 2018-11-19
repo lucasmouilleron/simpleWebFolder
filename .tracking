@@ -7,3 +7,15 @@ path;authorized;password;ip;date
 /portraits;no;;::1;1542560745
 /portraits;no;;::1;1542560813
 /portraits;no;;::1;1542617701
+/portraits;no;;::1;1542627484
+/docs;no;;::1;1542627487
+/portraits;no;;::1;1542635168
+/portraits/.password;no;;::1;1542635174
+/portraits/.password;yes;test2;::1;1542635179
+/portraits;yes;test2;::1;1542635185
+/portraits;no;;::1;1542635911
+/portraits;no;test;::1;1542635931
+/portraits;no;test;::1;1542635933
+/portraits;no;;::1;1542636047
+/portraits;yes;test2;::1;1542636051
+/portraits/LM1.jpg;yes;test2;::1;1542636057

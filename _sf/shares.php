@@ -11,15 +11,14 @@ $alerts = [];
 $share = null;
 $shares = [];
 $addShareFile = null;
+$addShareIsDir = false;
 $isAdmin = false;
 $sharesFolder = $rootFolder . "/_sf_shares";
 $needForce = false;
 $shareID = null;
 $shareDuration = "";
-$userWantsLogin = false;
 $defaultShareID = uniqid();
 $maxShares = 50;
-$wantAdmin = false;
 
 /////////////////////////////////////////////////////////////////////////////
 /// ENABLED
@@ -35,22 +34,7 @@ if(!$SHARING_ENABLED)
 if(isset($_POST["admin-password-submit"])) setAdminPassword($_POST["password"]);
 $isAdmin = getAdminPassword() == $ADMIN_PASSWORD;
 if(isset($_POST["admin-password-submit"]) && !$isAdmin) array_push($alerts, ["Can't authenticate as admin", "Can't authenticate as admin. The password you provided is incorrect."]);
-if(isset($_GET["admin"])) $wantAdmin = true;
 
-/////////////////////////////////////////////////////////////////////////////
-/// SHARE DETAILS
-/////////////////////////////////////////////////////////////////////////////
-if($SHARING_ENABLED && startsWith($currentPage, "/share="))
-{
-    $shareID = str_replace("/share=", "", $currentPage);
-    if(isset($_POST["password-submit"])) setPasswordShare($shareID, $_POST["password"]);
-    if($wantAdmin) $share = getShare($sharesFolder, $shareID);
-    else
-    {
-        list($success, $hint, $userWantsLogin) = getShareAndDownload($rootFolder, $sharesFolder, $shareID, @$_POST["password"]);
-        if(!$success) array_push($alerts, ["Can't get file", "The file you have requested is not available: " . $hint . "."]);
-    }
-}
 
 /////////////////////////////////////////////////////////////////////////////
 /// SHARE CREATE
@@ -58,6 +42,7 @@ if($SHARING_ENABLED && startsWith($currentPage, "/share="))
 if($SHARING_ENABLED && $isAdmin && startsWith($currentPage, "/create-share="))
 {
     $addShareFile = str_replace("/create-share=", "", $currentPage);
+    $addShareIsDir = is_dir($rootFolder . $addShareFile);
     if(isset($_POST["create-share-submit"]) || isset($_POST["create-share-force-submit"]))
     {
         if(!isset($_POST["shareID"])) array_push($alerts, ["Can't create share", "No share ID provided."]);
@@ -105,9 +90,7 @@ if($SHARING_ENABLED && $isAdmin && startsWith($currentPage, "/remove-share="))
 /////////////////////////////////////////////////////////////////////////////
 if($SHARING_ENABLED && $isAdmin)
 {
-    if(isset($_GET["share"])) $share = getShare($sharesFolder, $_GET["share"]);
     $shares = getShares($sharesFolder, $maxShares);
-//    if(count($shares) == 0) array_push($alerts, ["No shares", "No shares available. Add shares from file browsing @ <a href='" . $rootURL . $baseURL . "'>" . $rootURL . $baseURL . "</a>"]);
 }
 
 
@@ -137,6 +120,18 @@ if($SHARING_ENABLED && $isAdmin)
 
 <div class="name"><a href="<?php echo $rootURL . $baseURL . "shares"; ?>"><?php echo $NAME; ?></a></div>
 
+<div class="navigation section">
+    <?php if($isAdmin): ?>
+        <div data-toggle="tooltip" title="Leave admin mode"><a href="<?php echo $baseURL . "?noadmin"; ?>"><i class="icon <?php echo $ICON_LEAVE_ADMIN_CLASS; ?>"></i></a></div>
+        <div class="files" data-toggle="tooltip" title="Files"><a href="<?php echo $baseURL; ?>" target="_files"><i class="icon <?php echo $ICON_CURRENT_FOLDER_CLASS; ?>"></i></a></div>
+        <?php if($SHARING_ENABLED): ?>
+            <div class="shares" data-toggle="tooltip" title="Shares management"><a href="<?php echo $baseURL . "shares"; ?>" target="_shares"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a></div>
+        <?php endif; ?>
+        <?php if($TRACKING_PASSWORD_ENABLED): ?>
+            <div class="tracking" data-toggle="tooltip" title="Tracking"><a href="<?php echo $baseURL . "tracking"; ?>" target="_tracking"><i class="icon <?php echo $ICON_TRACKING_CLASS; ?>"></i></a></div>
+        <?php endif; ?>
+    <?php endif; ?>
+</div>
 
 <?php foreach($alerts as $alert): ?>
     <div class="alert">
@@ -145,15 +140,7 @@ if($SHARING_ENABLED && $isAdmin)
     </div>
 <?php endforeach; ?>
 
-<?php if($userWantsLogin): ?>
-    <div class="authenticate section">
-        <div class="section-title">Protected area, please authenticate</div>
-        <form method="post">
-            <input type="password" name="password" placeholder="Password"/>
-            <input type="submit" name="password-submit" value="Login"/>
-        </form>
-    </div>
-<?php elseif(!$isAdmin): ?>
+<?php if(!$isAdmin): ?>
     <div class="authenticate section">
         <div class="section-title">Admin, please authenticate</div>
         <form method="post">
@@ -170,6 +157,9 @@ if($SHARING_ENABLED && $isAdmin)
     <?php if(isset($addShareFile)): ?>
         <div class="create-share section">
             <div class="section-title">Create share</div>
+            <?php if($addShareIsDir): ?>
+                <div>Warning: You are creating a share on a folder. All sub files and folders of <i><?php echo $addShareFile;?></i> will ne accessible from this share.</div>
+            <?php endif; ?>
             <form method="post">
                 <input readonly type="text" placeholder="<?php echo $addShareFile; ?>"/>
                 <input type="text" name="shareID" placeholder="Share ID* (default: <?php echo $defaultShareID; ?>)" value="<?php echo $shareID; ?>"/>
@@ -179,56 +169,6 @@ if($SHARING_ENABLED && $isAdmin)
                 <?php if($needForce): ?><input type="submit" name="create-share-force-submit" value="Override share"/>
                 <?php else: ?> <input type="submit" name="create-share-submit" value="Create share"/> <?php endif; ?>
             </form>
-        </div>
-    <?php endif; ?>
-    <?php if(isset($share)): ?>
-        <div class="share section">
-            <div class="section-title">Share <?php echo $share->ID; ?></div>
-            <table>
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Link</th>
-                    <th>File</th>
-                    <th># views</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td><?php echo $share->ID; ?></td>
-                    <td><a href="<?php echo $rootURL . $baseURL . "share=" . $share->ID; ?>" target="_<?php echo $share->ID; ?>"><?php echo $rootURL . $baseURL . "share=" . $share->ID; ?></a></td>
-                    <td><a href="<?php echo $rootURL . $baseURL . $share->file; ?>" target="_files"><?php echo $share->file; ?></a></td>
-                    <td><?php echo count($share->views); ?></td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="share section">
-            <div class="section-title">Share <?php echo $share->ID; ?> views</div>
-            <table>
-                <thead>
-                <tr>
-                    <th data-sort="string-ins">IP</th>
-                    <th data-sort="string-ins">Date</th>
-                </tr>
-                </thead>
-                <tbody>
-                <?php $i = 0; ?>
-                <?php if(count($share->views) == 0): ?>
-                    <tr>
-                        <td colspan="20">
-                            <center>No views yet</center>
-                        </td>
-                    </tr><?php endif; ?>
-                <?php foreach(array_reverse($share->views) as $view): ?>
-                    <tr class="<?php if($i % 2 == 1) echo "even"; ?>">
-                        <td><?php echo $view->ip; ?></td>
-                        <td><?php echo date("Ymd @ H:i", $view->date); ?></td>
-                    </tr>
-                    <?php $i++; ?>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
         </div>
     <?php endif; ?>
     <?php if(count($shares) > 0): ?>
@@ -263,7 +203,7 @@ if($SHARING_ENABLED && $isAdmin)
                         </td>
                         <td>
                             <a class="link" data-clipboard-text="<?php echo $shareURL; ?>" data-toggle="tooltip" title="Copy link"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
-                            <a data-toggle="tooltip" title="Details" href="<?php echo $baseURL . "shares?share=" . $share->ID; ?>"><i class="icon <?php echo $ICON_DETAIL_CLASS; ?>"></i></a>
+                            <a data-toggle="tooltip" title="Details" href="<?php echo $baseURL . "share=" . $share->ID; ?>" target="_share_<?php echo $share->ID; ?>"><i class="icon <?php echo $ICON_DETAIL_CLASS; ?>"></i></a>
                             <a data-toggle="tooltip" title="Remove" class="confirmation" href="<?php echo $baseURL . "remove-share=" . $share->ID; ?>"><i class="icon <?php echo $ICON_DELETE_CLASS; ?>"></i></a>
                         </td>
                     </tr>
