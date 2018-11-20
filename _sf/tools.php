@@ -539,7 +539,7 @@ function getTrackings($roothPath, $password = null, $item = null, $maxItems = nu
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-function trackPasswordProtectedElement($rootPath, $path, $isAuthotirzed, $passwordProvided, $maxSizeInBytes = 3000)
+function trackItem($rootPath, $path, $isAuthotirzed, $passwordProvided, $maxSizeInBytes = 3000)
 {
     $trackFile = $rootPath . "/.tracking";
     $headers = ["path", "authorized", "password", "ip", "date"];

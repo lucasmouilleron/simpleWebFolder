@@ -43,7 +43,8 @@ if($isAdmin) $isAuthorized = true;
 $listingAllowed = !listingForbidden($currentPath);
 $downloadAllowed = !downloadForbidden($currentPath);
 $shownAllowed = !showForbidden($currentPath);
-if($TRACKING_PASSWORD_ENABLED && $isProtected && !$isAdmin) trackPasswordProtectedElement($rootFolder, $currentPath, $isAuthorized, $savedPassword);
+//if($TRACKING_ENABLED && $isProtected && !$isAdmin) trackItem($rootFolder, $currentPath, $isAuthorized, $savedPassword);
+if($TRACKING_ENABLED && !$isAdmin) trackItem($rootFolder, $currentPath, $isAuthorized, $savedPassword);
 if($isAuthorized)
 {
     if(!file_exists($currentPath)) array_push($alerts, ["File not found", "The file " . $currentPage . " does not exist."]);
@@ -112,7 +113,7 @@ $shownAllowed = $shownAllowed || $isAdmin;
         <?php if($SHARING_ENABLED): ?>
             <div class="shares" data-toggle="tooltip" title="Shares management"><a href="<?php echo $baseURL . "shares"; ?>" target="_shares"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a></div>
         <?php endif; ?>
-        <?php if($TRACKING_PASSWORD_ENABLED): ?>
+        <?php if($TRACKING_ENABLED): ?>
             <div class="tracking" data-toggle="tooltip" title="Tracking"><a href="<?php echo $baseURL . "tracking"; ?>" target="_tracking"><i class="icon <?php echo $ICON_TRACKING_CLASS; ?>"></i></a></div>
         <?php endif; ?>
     <?php endif; ?>

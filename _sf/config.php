@@ -20,6 +20,6 @@ $ICON_FOLDER_CLASS = "fas fa-folder";
 $ICON_TRACKING_CLASS = "fas fa-glasses";
 $EXTENSIONS_CLASSES = array("default" => "fas fa-file", "html" => "fas fa-file-code", "jpg" => "fas fa-file-image", "gif" => "fas fa-file-image", "png" => "fas fa-file-image", "pdf" => "fas fa-file-pdf", "ppt" => "fas fa-file-powerpoint", "pptx" => "fas fa-file-powerpoint", "doc" => "fas fa-file-word", "docx" => "fas fa-file-word", "xls" => "fas fa-file-excel", "xlsx" => "fas fa-file-excel", "avi" => "fas fa-file-video", "mov" => "fas fa-file-video", "mp4" => "fas fa-file-video", "wav" => "fas fa-file-audio", "mp3" => "fas fa-file-audio", "zip" => "fas fa-file-archive", "tgz" => "fas fa-file-archive");
 $SHARING_ENABLED = true;
-$TRACKING_PASSWORD_ENABLED = true;
+$TRACKING_ENABLED = true;
 
 ?>
