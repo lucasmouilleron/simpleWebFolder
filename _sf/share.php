@@ -52,7 +52,7 @@ if($SHARING_ENABLED)
     if(isset($_POST["password-submit"]) && isset($shareID)) setPasswordShare($shareID, $_POST["password"]);
     if(isset($shareID) && (!$wantAdmin || $isAdmin))
     {
-        if($isAdmin) list($share, $success, $hint, $isUserAuthorized) = [getShare($sharesFolder, $shareID), true, "none", true];
+        if($isAdmin) list($share, $success, $hint, $isUserAuthorized) = [getShare($sharesFolder, $shareID), false, "none", true];
         else list($success, $hint, $isUserAuthorized, $share) = getShareAsUser($rootFolder, $sharesFolder, $shareID, $shareSubFile);
         if($success)
         {

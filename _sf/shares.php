@@ -206,7 +206,7 @@ if($SHARING_ENABLED && $isAdmin)
                         </td>
                         <td>
                             <a class="link" data-clipboard-text="<?php echo $shareURL; ?>" data-toggle="tooltip" title="Copy link"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
-                            <a data-toggle="tooltip" title="Details" href="<?php echo $shareURL; ?>" target="_share_<?php echo $share->ID; ?>"><i class="icon <?php echo $ICON_DETAIL_CLASS; ?>"></i></a>
+                            <a data-toggle="tooltip" title="Details" href="<?php echo $baseURL . "share=" . $share->ID; ?>" target="_share_<?php echo $share->ID; ?>"><i class="icon <?php echo $ICON_DETAIL_CLASS; ?>"></i></a>
                             <a data-toggle="tooltip" title="Remove" class="confirmation" href="<?php echo cleanURL($baseURL . "remove-share=" . $share->ID); ?>"><i class="icon <?php echo $ICON_DELETE_CLASS; ?>"></i></a>
                         </td>
                     </tr>
