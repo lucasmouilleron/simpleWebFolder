@@ -275,7 +275,8 @@ function getFileExtensionClass($filePath, $map)
 ///////////////////////////////////////////////////////////////////////////////
 function cleanURL($url)
 {
-    return rtrim(str_replace(["///", "//"], ["/", "/"], $url), "/");
+
+    return str_replace(":__", "://", rtrim(str_replace(["///", "//"], ["/", "/"], str_replace("://", ":__", $url)), "/"));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
