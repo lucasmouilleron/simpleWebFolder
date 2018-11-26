@@ -157,6 +157,12 @@ function cleanPathForCookie($path)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+function passwordProtected($path)
+{
+    return file_exists($path . "/.password");
+}
+
+///////////////////////////////////////////////////////////////////////////////
 function listingForbidden($path)
 {
     return file_exists($path . "/.nolist");
@@ -340,7 +346,7 @@ function scanFolder($folderPath, $forbiddenItems, $isAdmin)
         }
         if(inArrayString($item, $forbiddenItems)) continue;
         if(!$isAdmin && showForbidden($itemPath)) continue;
-        if(is_dir($itemPath)) $foldersMap[$item] = $itemPath;
+        if(is_dir($itemPath)) $foldersMap[$item] = array("path" => $itemPath, "protected" => passwordProtected($itemPath));
         else $filesMap[$item] = $itemPath;
     }
     return array("files" => $filesMap, "folders" => $foldersMap);

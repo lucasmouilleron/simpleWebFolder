@@ -219,7 +219,9 @@ if($SHARING_ENABLED)
                 </thead>
                 <tbody>
                 <?php $i = 0; ?>
-                <?php foreach($items["folders"] as $item => $itemPath): ?>
+                <?php foreach($items["folders"] as $item => $itemDetails): ?>
+                    <?php $itemPath = $itemDetails["path"]; ?>
+                    <?php $itemProtected = $itemDetails["protected"]; ?>
                     <tr onclick="location.href='<?php echo cleanURL($shareURLWithSubFile . "/" . $item); ?>'" class="<?php if($i % 2 == 1) echo "even"; ?>">
                         <td class="icon <?php echo $ICON_FOLDER_CLASS ?>"></td>
                         <td><?php echo $item; ?></td>

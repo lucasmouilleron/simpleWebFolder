@@ -18,7 +18,7 @@ $items = [];
 /////////////////////////////////////////////////////////////////////////////
 /// ADMIN
 /////////////////////////////////////////////////////////////////////////////
-if($currentPage == "/admin") header("Location: ".$baseURL."?admin");
+if($currentPage == "/admin") header("Location: " . $baseURL . "?admin");
 if(isset($_GET["noadmin"])) setAdminPassword("--delog");
 if(isset($_POST["admin-password-submit"])) setAdminPassword($_POST["password"]);
 $isAdmin = getAdminPassword() == $ADMIN_PASSWORD;
@@ -167,11 +167,13 @@ $shownAllowed = $shownAllowed || $isAdmin;
                 </thead>
                 <tbody>
                 <?php $i = 0; ?>
-                <?php foreach($items["folders"] as $item => $itemPath): ?>
+                <?php foreach($items["folders"] as $item => $itemDetails): ?>
+                    <?php $itemPath = $itemDetails["path"]; ?>
+                    <?php $itemProtected = $itemDetails["protected"]; ?>
                     <?php $folderURL = cleanURL($baseURL . $currentPage . "/" . $item); ?>
                     <?php $shareURL = cleanURL($baseURL . "create-share=" . $currentPage . "/" . $item); ?>
                     <tr class="<?php if($i % 2 == 1) echo "even"; ?>">
-                        <td onclick="location.href='<?php echo $folderURL; ?>'" class="icon <?php echo $ICON_FOLDER_CLASS ?>"></td>
+                        <td onclick="location.href='<?php echo $folderURL; ?>'" class="icon <?php if(!$itemProtected) echo $ICON_FOLDER_CLASS; else echo $ICON_PROTECTED_FOLDER_CLASS; ?>"></td>
                         <td onclick="location.href='<?php echo $folderURL; ?>'"><?php echo $item; ?></td>
                         <td onclick="location.href='<?php echo $folderURL; ?>'"><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
                         <td onclick="location.href='<?php echo $folderURL; ?>'"><?php echo count(scandir($itemPath)) - 2; ?></td>
