@@ -114,7 +114,7 @@ function zipFileAndDownload($rootPath, $path, $forbiddenItems, $sizeLimitInMB, $
 ///////////////////////////////////////////////////////////////////////////////
 function setAdminPassword($password)
 {
-    setcookie("admin-password", $password, 0, "/");
+    setcookie("admin-password", $password, time() + 60 * 60 * 24 * 100, "/");
     $GLOBALS["admin-password"] = $password;
 }
 
@@ -134,7 +134,7 @@ function setPassword($rootPath, $path, $password)
     if($lowerProtectedPath !== false)
     {
         $lowerProtectedPath = cleanPathForCookie($lowerProtectedPath);
-        setcookie($lowerProtectedPath, $password, 0, "/");
+        setcookie($lowerProtectedPath, $password, time() + 60 * 60 * 24 * 100, "/");
         $GLOBALS["password-" . $lowerProtectedPath] = $password;
     }
 }
@@ -299,7 +299,7 @@ function get(&$var, $default = null)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-function getReadme($folderPath, $offsetHeaders=false)
+function getReadme($folderPath, $offsetHeaders = false)
 {
     $readmeContent = "";
     $file = $folderPath . "/README.md";
@@ -480,7 +480,7 @@ function isShareAuthorized($share)
 ///////////////////////////////////////////////////////////////////////////////
 function setPasswordShare($shareID, $password)
 {
-    setcookie($shareID, $password, 0, "/");
+    setcookie($shareID, $password, time() + 60 * 60 * 24 * 100, "/");
     $GLOBALS["password-share-" . $shareID] = $password;
 }
 
