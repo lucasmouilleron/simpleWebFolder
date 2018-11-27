@@ -346,7 +346,7 @@ function scanFolder($folderPath, $forbiddenItems, $isAdmin)
         }
         if(inArrayString($item, $forbiddenItems)) continue;
         if(!$isAdmin && showForbidden($itemPath)) continue;
-        if(is_dir($itemPath)) $foldersMap[$item] = array("path" => $itemPath, "protected" => passwordProtected($itemPath));
+        if(is_dir($itemPath)) $foldersMap[$item] = $itemPath;
         else $filesMap[$item] = $itemPath;
     }
     return array("files" => $filesMap, "folders" => $foldersMap);

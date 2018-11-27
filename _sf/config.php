@@ -15,6 +15,7 @@ $ICON_NON_PROTECTED_FOLDER_CLASS = "fas fa-lock-open";
 $ICON_LEAVE_ADMIN_CLASS = "fas fa-lock-open";
 $ICON_DOWNLOAD_FOLDER_CLASS = "fas fa-download";
 $ICON_LINK_FOLDER_CLASS = "fas fa-link";
+$ICON_SHARE_CLASS = "fas fa-share-alt-square";
 $ICON_DETAIL_CLASS = "fas fa-search";
 $ICON_FOLDER_CLASS = "fas fa-folder";
 $ICON_TRACKING_CLASS = "fas fa-glasses";

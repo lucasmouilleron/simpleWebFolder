@@ -5,6 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 $rootFolder = realpath(__DIR__ . "/..");
 $docRoot = getDocRoot();
+$rootURL = getRootURL();
 $baseURL = getBaseURL($docRoot);
 $currentPage = getCurrentPage($rootFolder, $baseURL);
 $currentPath = preg_replace('#/+#', '/', $rootFolder . $currentPage);
@@ -167,20 +168,24 @@ $shownAllowed = $shownAllowed || $isAdmin;
                 </thead>
                 <tbody>
                 <?php $i = 0; ?>
-                <?php foreach($items["folders"] as $item => $itemDetails): ?>
-                    <?php $itemPath = $itemDetails["path"]; ?>
-                    <?php $itemProtected = $itemDetails["protected"]; ?>
-                    <?php $folderURL = cleanURL($baseURL . $currentPage . "/" . $item); ?>
+                <?php foreach($items["folders"] as $item => $itemPath): ?>
+                    <?php list($itemProtected, $itemPasswords, $unused, $unused) = isAuthorized($rootFolder, $itemPath); ?>
+                    <?php $folderURL = cleanURL($rootURL . $baseURL . $currentPage . "/" . $item); ?>
                     <?php $shareURL = cleanURL($baseURL . "create-share=" . $currentPage . "/" . $item); ?>
                     <tr class="<?php if($i % 2 == 1) echo "even"; ?>">
-                        <td onclick="location.href='<?php echo $folderURL; ?>'" class="icon <?php if(!$itemProtected) echo $ICON_FOLDER_CLASS; else echo $ICON_PROTECTED_FOLDER_CLASS; ?>"></td>
+                        <td onclick="location.href='<?php echo $folderURL; ?>'" class="icon <?php echo $ICON_FOLDER_CLASS; ?> <?php if($itemProtected) echo "disabled"; ?>"></td>
                         <td onclick="location.href='<?php echo $folderURL; ?>'"><?php echo $item; ?></td>
                         <td onclick="location.href='<?php echo $folderURL; ?>'"><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
                         <td onclick="location.href='<?php echo $folderURL; ?>'"><?php echo count(scandir($itemPath)) - 2; ?></td>
                         <?php if($isAdmin): ?>
                             <td>
+                                <?php if(!$itemProtected): ?>
+                                    <a data-toggle="tooltip" title="Copy link" class="link" data-clipboard-text="<?php echo $folderURL; ?>"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
+                                <?php else: ?>
+                                    <a data-toggle="tooltip" title="Copy link + password"  class="link" data-clipboard-text="<?php echo $folderURL." (password: ".$itemPasswords[0].")"; ?>"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
+                                <?php endif; ?>
                                 <?php if($SHARING_ENABLED): ?>
-                                    <a data-toggle="tooltip" title="Create share" href="<?php echo $shareURL; ?>" target="_shares"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
+                                    <a data-toggle="tooltip" title="Create share" href="<?php echo $shareURL; ?>" target="_shares"><i class="icon <?php echo $ICON_SHARE_CLASS; ?>"></i></a>
                                 <?php endif; ?>
                             </td>
                         <?php endif; ?>
@@ -210,15 +215,22 @@ $shownAllowed = $shownAllowed || $isAdmin;
                 <tbody>
                 <?php $i = 0; ?>
                 <?php foreach($items["files"] as $item => $itemPath): ?>
+                    <?php list($itemProtected, $itemPasswords, $unused, $unused) = isAuthorized($rootFolder, $itemPath); ?>
+                    <?php $itemURL = cleanURL($rootURL . $baseURL . $currentPage . "/" . $item); ?>
                     <tr class="<?php if($i % 2 == 1) echo "even"; ?>">
-                        <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')" class="icon <?php echo getFileExtensionClass($itemPath, $EXTENSIONS_CLASSES) ?>"></td>
-                        <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo $item; ?></td>
-                        <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
-                        <td onclick="window.open('<?php echo cleanURL($baseURL . $currentPage . "/" . $item); ?>')"><?php echo number_format(filesize($itemPath) / 1048576, 1); ?></td>
+                        <td onclick="window.open('<?php echo $itemURL; ?>')" class="icon <?php echo getFileExtensionClass($itemPath, $EXTENSIONS_CLASSES) ?> <?php if($itemProtected) echo "disabled"; ?>"></td>
+                        <td onclick="window.open('<?php echo $itemURL; ?>')"><?php echo $item; ?></td>
+                        <td onclick="window.open('<?php echo $itemURL; ?>')"><?php echo date("Y/m/d H:i", filemtime($itemPath)) ?></td>
+                        <td onclick="window.open('<?php echo $itemURL; ?>')"><?php echo number_format(filesize($itemPath) / 1048576, 1); ?></td>
                         <?php if($isAdmin): ?>
                             <td>
+                                <?php if(!$itemProtected): ?>
+                                    <a data-toggle="tooltip" title="Copy link" class="link" data-clipboard-text="<?php echo $itemURL; ?>"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
+                                <?php else: ?>
+                                    <a data-toggle="tooltip" title="Copy link + password"  class="link" data-clipboard-text="<?php echo $itemURL." (password: ".$itemPasswords[0].")"; ?>"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
+                                <?php endif; ?>
                                 <?php if($SHARING_ENABLED): ?>
-                                    <a data-toggle="tooltip" title="Create share" href="<?php echo $baseURL . "create-share=" . $currentPage . "/" . $item; ?>" target="_shares"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
+                                    <a data-toggle="tooltip" title="Create share" href="<?php echo $baseURL . "create-share=" . $currentPage . "/" . $item; ?>" target="_shares"><i class="icon <?php echo $ICON_SHARE_CLASS; ?>"></i></a>
                                 <?php endif; ?>
                             </td>
                         <?php endif; ?>
@@ -237,7 +249,7 @@ $shownAllowed = $shownAllowed || $isAdmin;
     $(document).ready(function () {
         window.name = "_files";
 
-        var clipboard = new ClipboardJS("#link");
+        var clipboard = new ClipboardJS(".link");
         clipboard.on('success', function (e) {
             alert("Link " + e.text + " copied to clipboard")
         });

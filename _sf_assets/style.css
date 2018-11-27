@@ -234,3 +234,11 @@ form.inline input {
     margin: 0 0 30px 0;
     display: block;
 }
+
+.disabled {
+    opacity: 0.3;
+}
+
+a.disabled:hover {
+    opacity: 0.3;
+}
