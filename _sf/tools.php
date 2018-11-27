@@ -366,7 +366,7 @@ function startsWith($haystack, $needle)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-function getShares($sharesFolder, $max = 99)
+function getShares($sharesFolder, $max = 99, $filterID = null)
 {
     $items = scandir($sharesFolder);
     $shares = [];
@@ -374,6 +374,7 @@ function getShares($sharesFolder, $max = 99)
     {
         $shareID = basename($item);
         if($shareID == "." || $shareID == ".." || startsWith($shareID, ".")) continue;
+        if(isset($filterID) and !strContains($filterID, $shareID)) continue;
         $share = getShare($sharesFolder, $shareID);
         $share->ID = $shareID;
         array_push($shares, $share);

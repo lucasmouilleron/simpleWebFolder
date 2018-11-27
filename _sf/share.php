@@ -52,24 +52,27 @@ if($SHARING_ENABLED)
     if(isset($_POST["password-submit"]) && isset($shareID)) setPasswordShare($shareID, $_POST["password"]);
     if(isset($shareID) && (!$wantAdmin || $isAdmin))
     {
-        if($isAdmin) list($share, $success, $hint, $isUserAuthorized) = [getShare($sharesFolder, $shareID), false, "none", true];
+        if($isAdmin) list($share, $success, $hint, $isUserAuthorized) = [getShare($sharesFolder, $shareID), true, "none", true];
         else list($success, $hint, $isUserAuthorized, $share) = getShareAsUser($rootFolder, $sharesFolder, $shareID, $shareSubFile);
-        if($success)
+        if(!$isAdmin)
         {
-            $shareFileOrFolder = $rootFolder . $share->file;
-            if($shareSubFile != "") $shareFileOrFolder = $shareFileOrFolder . $shareSubFile;
-            if(!file_exists($shareFileOrFolder)) array_push($alerts, ["File not found", "The file " . $share->file . $shareSubFile . " does not exist."]);
-            elseif(is_file($shareFileOrFolder))
+            if($success)
             {
-                if(!displayFile($shareFileOrFolder, $FORBIDEN_ITEMS)) array_push($alerts, ["File not found", "The file " . $shareFileOrFolder . " does not exist."]);
+                $shareFileOrFolder = $rootFolder . $share->file;
+                if($shareSubFile != "") $shareFileOrFolder = $shareFileOrFolder . $shareSubFile;
+                if(!file_exists($shareFileOrFolder)) array_push($alerts, ["File not found", "The file " . $share->file . $shareSubFile . " does not exist."]);
+                elseif(is_file($shareFileOrFolder))
+                {
+                    if(!displayFile($shareFileOrFolder, $FORBIDEN_ITEMS)) array_push($alerts, ["File not found", "The file " . $shareFileOrFolder . " does not exist."]);
+                }
+                else
+                {
+                    $items = scanFolder($shareFileOrFolder, $FORBIDEN_ITEMS, false);
+                    $readmeContent = getReadme($shareFileOrFolder, true);
+                }
             }
-            else
-            {
-                $items = scanFolder($shareFileOrFolder, $FORBIDEN_ITEMS, false);
-                $readmeContent = getReadme($shareFileOrFolder, true);
-            }
+            else array_push($alerts, ["Can't get file", "The file you have requested is not available: " . $hint . "."]);
         }
-        else array_push($alerts, ["Can't get file", "The file you have requested is not available: " . $hint . "."]);
     }
 }
 

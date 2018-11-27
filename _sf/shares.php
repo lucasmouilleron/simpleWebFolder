@@ -19,6 +19,8 @@ $shareID = null;
 $shareDuration = "";
 $defaultShareID = uniqid();
 $maxShares = 50;
+$shareCreated = false;
+$filterShareID = null;
 
 /////////////////////////////////////////////////////////////////////////////
 /// ENABLED
@@ -62,7 +64,7 @@ if($SHARING_ENABLED && $isAdmin && startsWith($currentPage, "/create-share="))
                     $addShareFile = null;
                     $shareID = null;
                     $shareURL = $rootURL . $baseURL . "share=" . $share->ID;
-                    array_push($alerts, ["Share created", "Share created for " . $share->file . " @ " . $shareURL]);
+                    $shareCreated = true;
                 }
                 else
                 {
@@ -93,7 +95,12 @@ if($SHARING_ENABLED && $isAdmin && startsWith($currentPage, "/remove-share="))
 /////////////////////////////////////////////////////////////////////////////
 if($SHARING_ENABLED && $isAdmin)
 {
-    $shares = getShares($sharesFolder, $maxShares);
+    if(isset($_POST["filter-share-submit"]))
+    {
+        if($_POST["shareID"] != "") $filterShareID = $_POST["shareID"];
+        if(isset($filterShareID) and strContains("share=", $filterShareID)) $filterShareID = str_replace($rootURL . $baseURL . "share=", "", $filterShareID);
+    }
+    $shares = getShares($sharesFolder, $maxShares, $filterShareID);
 }
 
 
@@ -152,6 +159,15 @@ if($SHARING_ENABLED && $isAdmin)
         </form>
     </div>
 <?php else: ?>
+
+    <?php if($shareCreated): ?>
+        <div class="alert">
+            <h2>Share created</h2>
+            <p>Share created for <?php echo $share->file; ?> @ <?php echo $shareURL; ?></p>
+            <p><a class="link" data-clipboard-text="<?php echo $shareURL; ?>" data-toggle="tooltip" title="Copy link">Copy share link</a> | <a href="<?php echo $baseURL . "share=" . $share->ID; ?>" target="_share_<?php echo $share->ID; ?>">View share</a></p>
+        </div>
+    <?php endif; ?>
+
     <div class="readme section">
         <div class="readme-content">
             Add shares from file browsing @ <a href="<?php echo $rootURL . $baseURL; ?>" target="_files"><?php echo $rootURL . $baseURL; ?></a>
@@ -174,9 +190,23 @@ if($SHARING_ENABLED && $isAdmin)
             </form>
         </div>
     <?php endif; ?>
-    <?php if(count($shares) > 0): ?>
-        <div class="shares section">
+
+    <div class="readme section">
+        <div class="readme-content">
+            <div class="section-title">Share lookup</div>
+            <form method="post">
+                <input type="text" name="shareID" value="<?php echo $filterShareID; ?>" placeholder="share (partial) ID or share url"/>
+                <input type="submit" name="filter-share-submit" value="Find share"/>
+            </form>
+        </div>
+    </div>
+    <div class="shares section">
+        <?php if(isset($filterShareID)): ?>
+            <div class="section-title">Shares found</div>
+        <?php else: ?>
             <div class="section-title">Latest <?php echo $maxShares; ?> shares</div>
+        <?php endif; ?>
+        <?php if(count($shares) > 0): ?>
             <table>
                 <thead>
                 <tr>
@@ -214,8 +244,10 @@ if($SHARING_ENABLED && $isAdmin)
                 <?php endforeach; ?>
                 </tbody>
             </table>
-        </div>
-    <?php endif; ?>
+        <?php else: ?>
+        No shares.
+        <?php endif; ?>
+    </div>
 
 <?php endif; ?>
 

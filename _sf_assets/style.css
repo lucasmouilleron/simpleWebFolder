@@ -19,6 +19,7 @@ a, a:hover {
     color: blue;
     opacity: 0.8;
     text-decoration: none;
+    cursor: pointer;
 }
 
 a:hover {
