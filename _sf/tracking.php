@@ -117,6 +117,7 @@ if(isset($_POST["filter"]))
                 <th data-sort="string-ins">Item</th>
                 <th data-sort="string-ins" width="200">Password</th>
                 <th data-sort="string-ins" width="100">Authorized</th>
+                <th data-sort="string-ins" width="140">IP</th>
                 <th data-sort="string-ins" width="160">Date</th>
             </tr>
             </thead>
@@ -127,6 +128,7 @@ if(isset($_POST["filter"]))
                     <td><?php echo $tracking->item; ?></td>
                     <td><?php echo $tracking->password; ?></td>
                     <td><?php echo $tracking->authorized; ?></td>
+                    <td><?php echo $tracking->ip; ?></td>
                     <td><?php echo date("Ymd @ H:i", $tracking->date); ?></td>
                 </tr>
                 <?php $i++; ?>
