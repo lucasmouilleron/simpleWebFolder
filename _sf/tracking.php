@@ -102,8 +102,8 @@ if(isset($_POST["filter"]))
                 <option <?php if($maxItems == 1000) echo "SELECTED"; ?>>1000</option>
                 <option <?php if($maxItems == "all") echo "SELECTED"; ?>>all</option>
             </select>
-            <label>Password</label><input type="text" name="password" value="<?php echo $password; ?>" style="width:200px;"/>
-            <label>Item</label><input type="text" name="item" value="<?php echo $item; ?>" style="width:200px;"/>
+            <label></label><input type="text" name="password" value="<?php echo $password; ?>" placeholder="Password" style="width:200px;"/>
+            <label></label><input type="text" name="item" value="<?php echo $item; ?>" placeholder="Item" style="width:200px;"/>
             <label></label><input type="submit" name="filter" value="Filter" style="width:100px;"/>
         </form>
     </div>

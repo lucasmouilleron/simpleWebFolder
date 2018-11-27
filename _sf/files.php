@@ -182,7 +182,7 @@ $shownAllowed = $shownAllowed || $isAdmin;
                                 <?php if(!$itemProtected): ?>
                                     <a data-toggle="tooltip" title="Copy link" class="link" data-clipboard-text="<?php echo $folderURL; ?>"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
                                 <?php else: ?>
-                                    <a data-toggle="tooltip" title="Copy link + password"  class="link" data-clipboard-text="<?php echo $folderURL." (password: ".$itemPasswords[0].")"; ?>"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
+                                    <a data-toggle="tooltip" title="Copy link + password" class="link" data-clipboard-text="<?php echo $folderURL . " (password: " . $itemPasswords[0] . ")"; ?>"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
                                 <?php endif; ?>
                                 <?php if($SHARING_ENABLED): ?>
                                     <a data-toggle="tooltip" title="Create share" href="<?php echo $shareURL; ?>" target="_shares"><i class="icon <?php echo $ICON_SHARE_CLASS; ?>"></i></a>
@@ -227,7 +227,7 @@ $shownAllowed = $shownAllowed || $isAdmin;
                                 <?php if(!$itemProtected): ?>
                                     <a data-toggle="tooltip" title="Copy link" class="link" data-clipboard-text="<?php echo $itemURL; ?>"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
                                 <?php else: ?>
-                                    <a data-toggle="tooltip" title="Copy link + password"  class="link" data-clipboard-text="<?php echo $itemURL." (password: ".$itemPasswords[0].")"; ?>"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
+                                    <a data-toggle="tooltip" title="Copy link + password" class="link" data-clipboard-text="<?php echo $itemURL . " (password: " . $itemPasswords[0] . ")"; ?>"><i class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a>
                                 <?php endif; ?>
                                 <?php if($SHARING_ENABLED): ?>
                                     <a data-toggle="tooltip" title="Create share" href="<?php echo $baseURL . "create-share=" . $currentPage . "/" . $item; ?>" target="_shares"><i class="icon <?php echo $ICON_SHARE_CLASS; ?>"></i></a>

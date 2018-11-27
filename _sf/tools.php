@@ -549,6 +549,7 @@ function getTrackings($roothPath, $password = null, $item = null, $maxItems = nu
 ///////////////////////////////////////////////////////////////////////////////
 function trackItem($rootPath, $path, $isAuthotirzed, $passwordProvided, $maxSizeInBytes = 3000)
 {
+    if(!file_exists($path)) return;
     $trackFile = $rootPath . "/.tracking";
     $headers = ["path", "authorized", "password", "ip", "date"];
     try

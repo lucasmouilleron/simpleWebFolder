@@ -194,9 +194,9 @@ if($SHARING_ENABLED && $isAdmin)
     <div class="readme section">
         <div class="readme-content">
             <div class="section-title">Share lookup</div>
-            <form method="post">
+            <form method="post" class="inline">
                 <input type="text" name="shareID" value="<?php echo $filterShareID; ?>" placeholder="share (partial) ID or share url"/>
-                <input type="submit" name="filter-share-submit" value="Find share"/>
+                <label></label><input type="submit" name="filter-share-submit" value="Filter" style="width:100px;"/>
             </form>
         </div>
     </div>
