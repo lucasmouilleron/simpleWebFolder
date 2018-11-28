@@ -63,7 +63,7 @@ if($SHARING_ENABLED && $isAdmin && startsWith($currentPage, "/create-share="))
                     $share = createShare($sharesFolder, $shareID, $addShareFile, $shareDuration, @$_POST["password"]);
                     $addShareFile = null;
                     $shareID = null;
-                    $shareURL = $rootURL . $baseURL . "share=" . $share->ID;
+                    $shareURL = myurlencode($rootURL . $baseURL . "share=" . $share->ID);
                     $shareCreated = true;
                 }
                 else
@@ -245,7 +245,7 @@ if($SHARING_ENABLED && $isAdmin)
                 </tbody>
             </table>
         <?php else: ?>
-        No shares.
+            No shares.
         <?php endif; ?>
     </div>
 

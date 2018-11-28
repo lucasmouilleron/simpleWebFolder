@@ -581,4 +581,10 @@ function trackItem($rootPath, $path, $isAuthotirzed, $passwordProvided, $maxSize
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+function myurlencode($url)
+{
+    return str_replace("%3A", ":", str_replace("%2F", "/", rawurlencode($url)));
+}
+
 ?>

@@ -170,7 +170,7 @@ $shownAllowed = $shownAllowed || $isAdmin;
                 <?php $i = 0; ?>
                 <?php foreach($items["folders"] as $item => $itemPath): ?>
                     <?php list($itemProtected, $itemPasswords, $unused, $unused) = isAuthorized($rootFolder, $itemPath); ?>
-                    <?php $folderURL = cleanURL($rootURL . $baseURL . $currentPage . "/" . $item); ?>
+                    <?php $folderURL = myurlencode(cleanURL($rootURL . $baseURL . $currentPage . "/" . $item)); ?>
                     <?php $shareURL = cleanURL($baseURL . "create-share=" . $currentPage . "/" . $item); ?>
                     <tr class="<?php if($i % 2 == 1) echo "even"; ?>">
                         <td onclick="location.href='<?php echo $folderURL; ?>'" class="icon <?php echo $ICON_FOLDER_CLASS; ?> <?php if($itemProtected) echo "disabled"; ?>"></td>
@@ -216,7 +216,7 @@ $shownAllowed = $shownAllowed || $isAdmin;
                 <?php $i = 0; ?>
                 <?php foreach($items["files"] as $item => $itemPath): ?>
                     <?php list($itemProtected, $itemPasswords, $unused, $unused) = isAuthorized($rootFolder, $itemPath); ?>
-                    <?php $itemURL = cleanURL($rootURL . $baseURL . $currentPage . "/" . $item); ?>
+                    <?php $itemURL = myurlencode(cleanURL($rootURL . $baseURL . $currentPage . "/" . $item)); ?>
                     <tr class="<?php if($i % 2 == 1) echo "even"; ?>">
                         <td onclick="window.open('<?php echo $itemURL; ?>')" class="icon <?php echo getFileExtensionClass($itemPath, $EXTENSIONS_CLASSES) ?> <?php if($itemProtected) echo "disabled"; ?>"></td>
                         <td onclick="window.open('<?php echo $itemURL; ?>')"><?php echo $item; ?></td>
