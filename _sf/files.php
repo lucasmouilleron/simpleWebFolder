@@ -164,7 +164,7 @@ if($isAdmin && isset($_POST["add-password-submit"]))
             <form method="post" class="inline">
                 <input type="text" id="search-password" placeholder="search for (partial) password"/>
             </form>
-            <div id="passwords">
+                <div id="passwords">
                 <?php foreach($requiredPasswords as $requiredPassword): ?>
                     <span data-password="<?php echo $requiredPassword; ?>"><?php echo $requiredPassword; ?> <a data-toggle="tooltip" title="Copy link + password" class="link" data-clipboard-text="<?php echo $currentURL . " (password: " . $requiredPassword . ")"; ?>"><i
                                     class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a></span>

@@ -243,3 +243,7 @@ form.inline input {
 a.disabled:hover {
     opacity: 0.3;
 }
+
+#passwords span {
+    margin-right: 10px;
+}
