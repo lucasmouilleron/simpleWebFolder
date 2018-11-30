@@ -67,7 +67,7 @@ if(!$isAdmin && $isAuthorized && !$listingAllowed) array_push($alerts, ["Can't l
 if($isAdmin)
 {
     $subAlerts = [];
-    if($isProtected) array_push($subAlerts, "Password protected: " . implode(" or ", $requiredPasswords));
+    if($isProtected) array_push($subAlerts, "Password protected");
     if(!$listingAllowed) array_push($subAlerts, "Listing not allowed for non admin users");
     if(!$shownAllowed) array_push($subAlerts, "Forlder not shown for non admin users");
     if(!$downloadAllowed) array_push($subAlerts, "Folder not downloadble");
@@ -75,6 +75,26 @@ if($isAdmin)
 }
 $listingAllowed = $listingAllowed || $isAdmin;
 $shownAllowed = $shownAllowed || $isAdmin;
+
+/////////////////////////////////////////////////////////////////////////////
+/// ADD PASSWORD
+/////////////////////////////////////////////////////////////////////////////
+if($isAdmin && isset($_POST["add-password-submit"]))
+{
+    $addpassword = clean($_POST["new-password"]);
+    if($addpassword == "") array_push($alerts, ["Can't add password", "Password is not valid"]);
+    elseif(in_array($addpassword, $requiredPasswords))
+    {
+        array_push($alerts, ["Can't add password", "Password already exists"]);
+    }
+    else
+    {
+        addNewPassword($currentPath, $addpassword);
+        list($isProtected, $requiredPasswords, $savedPassword, $isAuthorized) = isAuthorized($rootFolder, $currentPath);
+        array_push($alerts, ["Password added", "The password" . $addpassword . " has been added to the folder"]);
+    }
+}
+
 
 ?>
 
@@ -127,6 +147,30 @@ $shownAllowed = $shownAllowed || $isAdmin;
         <p><?php echo $alert[1]; ?></p>
     </div>
 <?php endforeach; ?>
+
+<?php if($isAdmin and $isProtected): ?>
+    <?php sort($requiredPasswords); ?>
+    <div class="passwords section">
+        <div class="section-title">Add a password</div>
+        <form method="post" class="inline">
+            <input type="text" name="new-password" placeholder="password to add"/>
+            <label></label><input type="submit" name="add-password-submit" value="Add password" style="width:150px;"/>
+        </form>
+    </div>
+    <div class="passwords section">
+        <div class="section-title">Passwords</div>
+        <form method="post" class="inline">
+            <input type="text" id="search-password" placeholder="search for (partial) password"/>
+        </form>
+        <div id="passwords">
+            <?php foreach($requiredPasswords as $requiredPassword): ?>
+                <span data-password="<?php echo $requiredPassword; ?>"><?php echo $requiredPassword; ?> <a data-toggle="tooltip" title="Copy link + password" class="link" data-clipboard-text="<?php echo $currentURL . " (password: " . $requiredPassword . ")"; ?>"><i
+                                class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a></span>
+            <?php endforeach; ?>
+            <div id="no-found-passwords" style="display:none">No password found</div>
+        </div>
+    </div>
+<?php endif; ?>
 
 <?php if($wantAdmin && !$isAdmin): ?>
     <div class="authenticate section">
@@ -261,6 +305,22 @@ $shownAllowed = $shownAllowed || $isAdmin;
             tableElt.find("tr:even").addClass("even");
             tableElt.find("tr:odd").removeClass("even");
         });
+        $("#search-password").keyup(function () {
+            var passwordSearch = this.value;
+            $("#passwords span").hide();
+            $("#no-found-passwords").hide();
+            var found = 0;
+            $("#passwords span").each(function (i, a) {
+                var potentialPassword = $(this).attr("data-password");
+                if (potentialPassword.indexOf(passwordSearch) !== -1) {
+                    $(this).show();
+                    found++;
+                }
+            });
+            if (found == 0) {$("#no-found-passwords").show();}
+
+        });
+
     });
 </script>
 

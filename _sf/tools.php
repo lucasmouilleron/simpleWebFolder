@@ -186,11 +186,20 @@ function isAuthorized($rootPath, $path)
 {
     $lowerProtectedPath = getLowerProtectedPath($rootPath, $path);
     if($lowerProtectedPath === false) return [false, "", "", true];
-    $requiredPasswords = explode("\n", file_get_contents($rootPath . "/" . $lowerProtectedPath . "/.password"));
+    $requiredPasswords = explode("\n", trim(file_get_contents($rootPath . "/" . $lowerProtectedPath . "/.password")));
     $savedPassword = getPassword($lowerProtectedPath);
     return [true, $requiredPasswords, $savedPassword, in_array($savedPassword, $requiredPasswords)];
 }
 
+///////////////////////////////////////////////////////////////////////////////
+function addNewPassword($path, $password)
+{
+    $passwordFile = $path . "/.password";
+    $requiredPasswords = explode("\n", trim(file_get_contents($passwordFile)));
+    if(in_array($password, $requiredPasswords)) return false;
+    array_push($requiredPasswords, $password);
+    return file_put_contents($passwordFile, implode("\n", $requiredPasswords));
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 function getLowerProtectedPath($rootPath, $path)
@@ -584,7 +593,7 @@ function trackItem($rootPath, $path, $isAuthotirzed, $passwordProvided, $maxSize
 ///////////////////////////////////////////////////////////////////////////////
 function myurlencode($url)
 {
-    return str_replace("%3A", ":", str_replace("%2F", "/", rawurlencode($url)));
+    return str_replace("%3D", "=", str_replace("%3A", ":", str_replace("%2F", "/", rawurlencode($url))));
 }
 
 ?>

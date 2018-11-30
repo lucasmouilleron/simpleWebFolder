@@ -43,7 +43,7 @@ a:hover {
     margin-bottom: 30px;
 }
 
-.readme {
+.readme, .passwords {
     background-color: #eee;
     padding: 15px 25px;
     border-bottom: 3px solid #ccc;
