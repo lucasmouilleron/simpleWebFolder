@@ -67,7 +67,8 @@ if(!$isAdmin && $isAuthorized && !$listingAllowed) array_push($alerts, ["Can't l
 if($isAdmin)
 {
     $subAlerts = [];
-    if($isProtected) array_push($subAlerts, "Password protected");
+    if($isProtected && count($requiredPasswords) > 1) array_push($subAlerts, "Password protected, see passwords below");
+    if($isProtected && count($requiredPasswords) == 1) array_push($subAlerts, "Password protected: " . $requiredPasswords[0]);
     if(!$listingAllowed) array_push($subAlerts, "Listing not allowed for non admin users");
     if(!$shownAllowed) array_push($subAlerts, "Forlder not shown for non admin users");
     if(!$downloadAllowed) array_push($subAlerts, "Folder not downloadble");
@@ -90,8 +91,8 @@ if($isAdmin && isset($_POST["add-password-submit"]))
     else
     {
         addNewPassword($currentPath, $addpassword);
-        list($isProtected, $requiredPasswords, $savedPassword, $isAuthorized) = isAuthorized($rootFolder, $currentPath);
-        array_push($alerts, ["Password added", "The password" . $addpassword . " has been added to the folder"]);
+        list($a, $requiredPasswords, $a, $a) = isAuthorized($rootFolder, $currentPath);
+        array_push($alerts, ["Password added", "The password " . $addpassword . " has been added to the folder"]);
     }
 }
 
@@ -157,19 +158,21 @@ if($isAdmin && isset($_POST["add-password-submit"]))
             <label></label><input type="submit" name="add-password-submit" value="Add password" style="width:150px;"/>
         </form>
     </div>
-    <div class="passwords section">
-        <div class="section-title">Passwords</div>
-        <form method="post" class="inline">
-            <input type="text" id="search-password" placeholder="search for (partial) password"/>
-        </form>
-        <div id="passwords">
-            <?php foreach($requiredPasswords as $requiredPassword): ?>
-                <span data-password="<?php echo $requiredPassword; ?>"><?php echo $requiredPassword; ?> <a data-toggle="tooltip" title="Copy link + password" class="link" data-clipboard-text="<?php echo $currentURL . " (password: " . $requiredPassword . ")"; ?>"><i
-                                class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a></span>
-            <?php endforeach; ?>
-            <div id="no-found-passwords" style="display:none">No password found</div>
+    <?php if(count($requiredPasswords) > 1): ?>
+        <div class="passwords section">
+            <div class="section-title">Passwords</div>
+            <form method="post" class="inline">
+                <input type="text" id="search-password" placeholder="search for (partial) password"/>
+            </form>
+            <div id="passwords">
+                <?php foreach($requiredPasswords as $requiredPassword): ?>
+                    <span data-password="<?php echo $requiredPassword; ?>"><?php echo $requiredPassword; ?> <a data-toggle="tooltip" title="Copy link + password" class="link" data-clipboard-text="<?php echo $currentURL . " (password: " . $requiredPassword . ")"; ?>"><i
+                                    class="icon <?php echo $ICON_LINK_FOLDER_CLASS; ?>"></i></a></span>
+                <?php endforeach; ?>
+                <div id="no-found-passwords" style="display:none">No password found</div>
+            </div>
         </div>
-    </div>
+    <?php endif; ?>
 <?php endif; ?>
 
 <?php if($wantAdmin && !$isAdmin): ?>
