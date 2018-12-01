@@ -32,4 +32,3 @@ For Apache web servers.
     
 ## TODO
 - Clean shares
-- Display tracking for admins
