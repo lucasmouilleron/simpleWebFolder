@@ -115,14 +115,13 @@ function zipFileAndDownload($rootPath, $path, $forbiddenItems, $sizeLimitInMB, $
 function setAdminPassword($password)
 {
     setcookie("admin-password", $password, time() + 60 * 60 * 24 * 100, "/");
-    $GLOBALS["admin-password"] = $password;
+    $_COOKIE["admin-password"] = $password;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 function getAdminPassword()
 {
-    if(isset($GLOBALS["admin-password"])) return $GLOBALS["admin-password"];
-    else if(isset($_COOKIE["admin-password"])) return $_COOKIE["admin-password"];
+    if(isset($_COOKIE["admin-password"])) return $_COOKIE["admin-password"];
     else return "";
 }
 
@@ -135,7 +134,7 @@ function setPassword($rootPath, $path, $password)
     {
         $lowerProtectedPath = cleanPathForCookie($lowerProtectedPath);
         setcookie($lowerProtectedPath, $password, time() + 60 * 60 * 24 * 100, "/");
-        $GLOBALS["password-" . $lowerProtectedPath] = $password;
+        $_COOKIE[$lowerProtectedPath] = $password;
     }
 }
 
@@ -143,8 +142,7 @@ function setPassword($rootPath, $path, $password)
 function getPassword($lowerProtectedPath)
 {
     $lowerProtectedPath = cleanPathForCookie($lowerProtectedPath);
-    if(isset($GLOBALS["password-" . $lowerProtectedPath])) return $GLOBALS["password-" . $lowerProtectedPath];
-    else if(isset($_COOKIE[$lowerProtectedPath])) return $_COOKIE[$lowerProtectedPath];
+    if(isset($_COOKIE[$lowerProtectedPath])) return $_COOKIE[$lowerProtectedPath];
     else return null;
 }
 
@@ -497,14 +495,13 @@ function isShareAuthorized($share)
 function setPasswordShare($shareID, $password)
 {
     setcookie($shareID, $password, time() + 60 * 60 * 24 * 100, "/");
-    $GLOBALS["password-share-" . $shareID] = $password;
+    $_COOKIE[$shareID] = $password;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 function getPasswordShare($shareID)
 {
-    if(isset($GLOBALS["password-share-" . $shareID])) return $GLOBALS["password-share-" . $shareID];
-    else if(isset($_COOKIE[$shareID])) return $_COOKIE[$shareID];
+    if(isset($_COOKIE[$shareID])) return $_COOKIE[$shareID];
     else return null;
 }
 
