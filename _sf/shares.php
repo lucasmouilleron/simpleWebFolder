@@ -200,6 +200,7 @@ if($SHARING_ENABLED && $isAdmin)
             </form>
         </div>
     </div>
+
     <div class="shares section">
         <?php if(isset($filterShareID)): ?>
             <div class="section-title">Shares found</div>

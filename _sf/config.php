@@ -2,6 +2,7 @@
 
 $NAME = "simpleWebFolder";
 $CREDITS = "Lucas Mouilleron";
+$MAIL = "lucas.mouilleron@me.com";
 $ADMIN_PASSWORD = "changeme";
 $FORBIDEN_ITEMS = array(".", "..", "_sf", "_sf_assets", "_sf_overrides", "_sf_shares", ".tracking",".password", ".nopassword", ".nolist", ".noshow", ".nodownload", ".DS_Store", "Icon\r", ".htaccess", "README.md");
 $TIMEZONE = "Europe/Paris";
